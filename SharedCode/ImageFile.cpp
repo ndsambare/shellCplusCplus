@@ -55,19 +55,19 @@ int ImageFile::append(vector <char> a) {
 
 
  int ImageFile::coordinateToIndex(unsigned int x, unsigned int y) {
-	unsigned int size = this->getSize() -1;
-
-	 int index = (size * y) + x;
+	unsigned int size = this->imageSize - '0';
+	int index = (size * y) + x;
 	return index; 
 }
 
 void ImageFile::read() {
-  int sizeOfChar = this->imageSize - '0'; 
-	for (int i = sizeOfChar-1; i >=0; i--) {
+	int sizeOfChar = this->imageSize - '0'; 
+  
+	for (int i = sizeOfChar - 1; i >= 0; i--) {
 		for (int j = 0; j < sizeOfChar; j++) {
 		 int index = coordinateToIndex(j, i);
-		   cout << fileContent[index];
+		   cout << fileContent.at(index);
 		}
-		cout <<endl; 
+		cout << endl; 
 	}
 }
