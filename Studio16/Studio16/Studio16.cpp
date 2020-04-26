@@ -1,11 +1,38 @@
 // Studio16.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include <iostream>
 
-int main()
+#include <iostream>
+#include <vector>
+#include <string>
+#include "../../SharedCode/AbstractFile.h"
+#include"../..//SharedCode/TextFile.h"
+
+using namespace std;
+
+int main(int argc, char* argv[])
 {
-    std::cout << "Hello World!\n";
+
+	AbstractFile* demo = new TextFile("demoProject");
+	vector<char> coconut;
+	
+	coconut.push_back('a');
+	coconut.push_back('l');
+	coconut.push_back('p');
+	coconut.push_back('h');
+	coconut.push_back('a');
+
+	vector<char> pineapple(coconut.begin(), coconut.end());
+	demo->write(coconut);
+	cout << demo->getName() << endl;
+	cout << demo->getSize() << endl;
+	
+	demo->read(); 
+	demo->append(pineapple);
+	demo->read();
+
+
+   
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
