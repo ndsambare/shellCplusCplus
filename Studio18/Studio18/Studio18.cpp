@@ -2,19 +2,28 @@
 //
 
 #include <iostream>
+#include "../..//SharedCode/AbstractFileFactory.h"
+#include "../..//SharedCode/SimpleFileFactory.h"
+#include "../..//SharedCode/AbstractFileSystem.h"
+#include "../..//SharedCode/SimpleFileSystem.h"
+#include "../..//SharedCode/TextFile.h"
+#include "../..//SharedCode/ImageFile.h"
+
+
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	AbstractFileSystem* afs = new SimpleFileSystem;
+	AbstractFileFactory* aff = new SimpleFileFactory;
+	vector<char> vec { 'n' , 'i' , 'c', 'e'};
+	AbstractFile* file = aff->createFile("nice.txt");
+	AbstractFile* file2 = aff->createFile("nice2.txt");
+	afs->addFile("nice.txt", file2);
+	afs->addFile("nice.txt", file2);
+	afs->openFile("nice.txt");
+	afs->openFile("nice2.txt");
+	file->write(vec);
+	file->read();
+	file2->write(vec);
+	file2->read();
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file

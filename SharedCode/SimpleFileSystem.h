@@ -11,7 +11,7 @@
 class SimpleFileSystem : public AbstractFileSystem {
 public:
 	virtual int addFile(string nameOfFile, AbstractFile* pointerFile);
-	virtual int createFile(string nameOfFile);
+	//virtual int createFile(string nameOfFile);
 	virtual int deleteFile(string nameOfFile);
 	virtual AbstractFile* openFile(string nameOfFile);
 	virtual int closeFile(AbstractFile* pointerFile);

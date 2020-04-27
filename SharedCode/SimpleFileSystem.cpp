@@ -32,7 +32,7 @@ int SimpleFileSystem::deleteFile(string nameOfFile) {
 	return Succ;
 }
 
-int SimpleFileSystem::createFile(string nameOfFile) {
+/*int SimpleFileSystem::createFile(string nameOfFile) {
 	if (this->fileInSystem.find(nameOfFile) != fileInSystem.end()) {
 		return fileExists;
 	}
@@ -58,7 +58,7 @@ int SimpleFileSystem::createFile(string nameOfFile) {
 		return Succ; 
 	}
 }
-
+*/
 
 
 
