@@ -2,10 +2,26 @@
 //
 
 #include <iostream>
+#include "../../SharedCode/AbstractFileFactory.h"
+#include "../../SharedCode/SimpleFileFactory.h"
+#include "../../SharedCode/SimpleFileSystem.h"
+#include "../../SharedCode/AbstractFileSystem.h"
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	AbstractFileFactory* aff = new SimpleFileFactory;
+	AbstractFile* test = aff->createFile("test.txt");
+	vector<char> addedContent{ 'n','i','c','e' };
+	test->write(addedContent);
+	vector<char> savedContents = test->read();
+	vector<char> newAddedContent{ 'c','o','o','l' };
+	test->write(newAddedContent);
+	for (char c : savedContents) {
+		cout << c << endl;
+	}
+	for (char c : test->read()) {
+		cout << c << endl;
+	}
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

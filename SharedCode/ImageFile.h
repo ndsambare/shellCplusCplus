@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include "..//SharedCode/AbstractFile.h"
+#include "AbstractFileVisitor.h"
 // Image file class declaration here
 
 class ImageFile : public AbstractFile {
@@ -17,7 +18,13 @@ public:
 	string getName();
 	int write(vector<char> c);
 	int append(vector<char> a);
-	void read();
+	vector<char> read();
+	int getImageSize();
+	void accept(AbstractFileVisitor* visitor) {
+		if (visitor) {
+			visitor->visit_ImageFile(this);
+		}
+	}
 };
 
 

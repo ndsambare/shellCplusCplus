@@ -60,14 +60,21 @@ int ImageFile::append(vector <char> a) {
 	return index; 
 }
 
-void ImageFile::read() {
+vector<char> ImageFile::read() {
 	int sizeOfChar = this->imageSize - '0'; 
-  
+	vector<char> vec;
 	for (int i = sizeOfChar - 1; i >= 0; i--) {
 		for (int j = 0; j < sizeOfChar; j++) {
-		 int index = coordinateToIndex(j, i);
-		   cout << fileContent.at(index);
+			int index = coordinateToIndex(j, i);
+			vec.push_back(fileContent.at(index));
+			//cout << fileContent.at(index);
 		}
-		cout << endl; 
+		//cout << endl; 
 	}
+	return vec;
+}
+
+int ImageFile::getImageSize() {
+	int sizeOfChar = this->imageSize - '0';
+	return sizeOfChar;
 }

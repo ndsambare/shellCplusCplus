@@ -34,8 +34,11 @@ int TextFile::append(vector<char> c) {
 	return 0;
 }
 
-void TextFile::read() {
+vector<char> TextFile::read() {
+	vector<char> vec;
 	for (char character : this->fileContent) {
-		cout << character;
+		vec.push_back(character);
+		//cout << character;
 	}
+	return vec;
 }
