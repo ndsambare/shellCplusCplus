@@ -150,6 +150,7 @@
     <ClCompile Include="..\..\SharedCode\BasicDisplayVisitor.cpp" />
     <ClCompile Include="..\..\SharedCode\ImageFile.cpp" />
     <ClCompile Include="..\..\SharedCode\MetadataDisplayVisitor.cpp" />
+    <ClCompile Include="..\..\SharedCode\PasswordProxy.cpp" />
     <ClCompile Include="..\..\SharedCode\SimpleFileFactory.cpp" />
     <ClCompile Include="..\..\SharedCode\SimpleFileSystem.cpp" />
     <ClCompile Include="..\..\SharedCode\TextFile.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="..\..\SharedCode\BasicDisplayVisitor.h" />
     <ClInclude Include="..\..\SharedCode\ImageFile.h" />
     <ClInclude Include="..\..\SharedCode\MetadataDisplayVisitor.h" />
+    <ClInclude Include="..\..\SharedCode\PasswordProxy.h" />
     <ClInclude Include="..\..\SharedCode\SimpleFileFactory.h" />
     <ClInclude Include="..\..\SharedCode\SimpleFileSystem.h" />
     <ClInclude Include="..\..\SharedCode\TextFile.h" />

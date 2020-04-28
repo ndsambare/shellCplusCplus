@@ -785,4 +785,5 @@ public:
 		Assert::IsTrue(same);
 	}
 	};
+
 }

@@ -23,7 +23,7 @@ string TextFile::getName() {
 int TextFile::write(vector<char> c) {
 	this->fileContent = c;
 	//return 0 means it was successful
-	return 0;
+	return Success;
 }
 
 int TextFile::append(vector<char> c) {

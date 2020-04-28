@@ -6,6 +6,10 @@
 class AbstractFileVisitor;
 using namespace std; 
 
+enum failsOrSuccess {
+	Success = 0, IncorrectChar = 1, sizeMisMatch = 2, appendNotSupported = 3, wrongPass = 4,
+};
+
 class AbstractFile {
 public:
 	virtual vector<char> read() = 0;

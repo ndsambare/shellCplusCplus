@@ -28,6 +28,3 @@ public:
 };
 
 
-enum failsOrSuccess {
-	Success = 0, IncorrectChar = 1, sizeMisMatch = 2, appendNotSupported = 3,
-};

@@ -4,24 +4,21 @@
 #include <iostream>
 #include "../../SharedCode/AbstractFileFactory.h"
 #include "../../SharedCode/SimpleFileFactory.h"
-#include "../../SharedCode/SimpleFileSystem.h"
-#include "../../SharedCode/AbstractFileSystem.h"
+#include "../../SharedCode/PasswordProxy.h"
+#include "../../SharedCode/AbstractFileVisitor.h"
+#include "../../SharedCode/BasicDisplayVisitor.h"
 
 int main()
 {
 	AbstractFileFactory* aff = new SimpleFileFactory;
 	AbstractFile* test = aff->createFile("test.txt");
+	PasswordProxy* proxy = new PasswordProxy(test, "123");
 	vector<char> addedContent{ 'n','i','c','e' };
-	test->write(addedContent);
-	vector<char> savedContents = test->read();
-	vector<char> newAddedContent{ 'c','o','o','l' };
-	test->write(newAddedContent);
-	for (char c : savedContents) {
-		cout << c << endl;
-	}
-	for (char c : test->read()) {
-		cout << c << endl;
-	}
+	proxy->write(addedContent);
+	vector<char> savedContents = proxy->read();
+	AbstractFileVisitor* visitor = new BasicDisplayVisitor;
+	proxy->accept(visitor);
+
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
