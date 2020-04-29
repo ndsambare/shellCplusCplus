@@ -2,22 +2,59 @@
 //
 
 #include <iostream>
-#include "../../SharedCode/AbstractFileFactory.h"
+#include <sstream>
+#include "../../SharedCode/TextFile.h"
+#include "../../SharedCode/ImageFile.h"
 #include "../../SharedCode/SimpleFileFactory.h"
-#include "../../SharedCode/PasswordProxy.h"
-#include "../../SharedCode/AbstractFileVisitor.h"
+#include "../../SharedCode/SimpleFileSystem.h"
 #include "../../SharedCode/BasicDisplayVisitor.h"
+#include "../../SharedCode/MetadataDisplayVisitor.h"
+#include "../../SharedCode/PasswordProxy.h"
+#include "../../SharedCode/TouchCommand.h"
+#include "../../SharedCode/CommandPrompt.h"
+#include "../../SharedCode/CommandTest.h"
 
 int main()
 {
-	AbstractFileFactory* aff = new SimpleFileFactory;
-	AbstractFile* test = aff->createFile("test.txt");
-	PasswordProxy* proxy = new PasswordProxy(test, "123");
-	vector<char> addedContent{ 'n','i','c','e' };
-	proxy->write(addedContent);
-	vector<char> savedContents = proxy->read();
-	AbstractFileVisitor* visitor = new BasicDisplayVisitor;
-	proxy->accept(visitor);
+	AbstractFileSystem* sfs = new SimpleFileSystem();
+	AbstractFileFactory* sff = new SimpleFileFactory();
+	CommandPrompt* cp = new CommandPrompt;
+	cp->setFileSystem(sfs);
+	cp->setFileFactory(sff);
+	// ADD COMMAND
+	CommandTest* ct = new CommandTest(sfs);
+	string commandname = "test";
+	//Assert::AreEqual(cp->addCommand(commandname, ct), 0);
+	// REDIRECT COUT STREAM
+	streambuf* backup_out;
+	backup_out = cout.rdbuf();
+	stringstream ss_out;
+	cout.rdbuf(ss_out.rdbuf());
+	// REDIRECT CIN STREAM
+	streambuf* backup_in;
+	backup_in = cin.rdbuf();
+	stringstream ss_in;
+	cin.rdbuf(ss_in.rdbuf());
+	// MIMIC USER INPUT
+	string input = "test foo moo\nq\n";
+	ss_in << input;
+	int response = cp->run();
+	//Assert::AreNotEqual(response, 0);
+	string word;
+	std::vector<string> printedWords;
+	while (ss_out >> word) {
+		printedWords.push_back(word);
+	}
+	// EXPECTATION -- ALL PARAMETERS SHOULD BE PRINTED TO COUT
+	std::vector<string>::iterator it1;
+	string expectedOutput = "foo:moo";
+	it1 = std::find(printedWords.begin(), printedWords.end(), expectedOutput);
+	bool notEqual1 = it1 == printedWords.end();
+	//Assert::IsFalse(notEqual1);
+	// ASSIGN COUT BACK TO STDOUT
+	cout.rdbuf(backup_out);
+	// ASSIGN CIN BACK TO STDIN
+	cin.rdbuf(backup_in);
 
 }
 

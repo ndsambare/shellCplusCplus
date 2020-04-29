@@ -1,15 +1,20 @@
 #include "CommandTest.h"
 using namespace std;
 
-CommandTest::CommandTest(AbstractFileSystem* _afs, AbstractFileFactory* _aff): afs(_afs), aff(_aff)
+CommandTest::CommandTest(AbstractFileSystem* _afs) : afs(_afs)
 {
 }
 
-int CommandTest::execute(std::string first, std::string second)
+int CommandTest::execute(string info)
 {
-	std::replace(second.begin(), second.end(), ' ', ':');
-	cout << "\n" << first << ":" << second << "\n" << endl;
-	return success;
+	if (info == "") {
+		cout << "command-test-no-info" << endl;
+	}
+	else {
+		replace(info.begin(), info.end(), ' ', ':');
+		cout << "\n" << info << "\n" << endl;
+	}
+	return Success;
 }
 
 void CommandTest::displayInfo()

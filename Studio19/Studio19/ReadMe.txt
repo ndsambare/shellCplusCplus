@@ -41,3 +41,9 @@ The output was:
 	123
 	nice
 This means our code is running properly as we were prompted 3 times for the password. When we input the password correctly, it correctly read, wrote, and displayed. 
+
+Studio 21 answers here
+
+2. It is important to declare a virtual destructor in the base class so the derived classes can properly prevent memory leaks
+
+
