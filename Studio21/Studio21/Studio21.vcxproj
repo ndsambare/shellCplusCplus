@@ -147,7 +147,44 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\SharedCode\BasicDisplayVisitor.cpp" />
+    <ClCompile Include="..\..\SharedCode\CommandPrompt.cpp" />
+    <ClCompile Include="..\..\SharedCode\CommandTest.cpp" />
+    <ClCompile Include="..\..\SharedCode\DirectoryFile.cpp" />
+    <ClCompile Include="..\..\SharedCode\HierarchicalFileFactory.cpp" />
+    <ClCompile Include="..\..\SharedCode\HierarchicalFileSystem.cpp" />
+    <ClCompile Include="..\..\SharedCode\ImageFile.cpp" />
+    <ClCompile Include="..\..\SharedCode\LSCommand.cpp" />
+    <ClCompile Include="..\..\SharedCode\MetadataDisplayVisitor.cpp" />
+    <ClCompile Include="..\..\SharedCode\PasswordProxy.cpp" />
+    <ClCompile Include="..\..\SharedCode\RemoveCommand.cpp" />
+    <ClCompile Include="..\..\SharedCode\SimpleFileFactory.cpp" />
+    <ClCompile Include="..\..\SharedCode\SimpleFileSystem.cpp" />
+    <ClCompile Include="..\..\SharedCode\TextFile.cpp" />
+    <ClCompile Include="..\..\SharedCode\TouchCommand.cpp" />
     <ClCompile Include="Studio21.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\SharedCode\AbstractCommand.h" />
+    <ClInclude Include="..\..\SharedCode\AbstractFile.h" />
+    <ClInclude Include="..\..\SharedCode\AbstractFileFactory.h" />
+    <ClInclude Include="..\..\SharedCode\AbstractFileSystem.h" />
+    <ClInclude Include="..\..\SharedCode\AbstractFileVisitor.h" />
+    <ClInclude Include="..\..\SharedCode\BasicDisplayVisitor.h" />
+    <ClInclude Include="..\..\SharedCode\CommandPrompt.h" />
+    <ClInclude Include="..\..\SharedCode\CommandTest.h" />
+    <ClInclude Include="..\..\SharedCode\DirectoryFile.h" />
+    <ClInclude Include="..\..\SharedCode\HierarchicalFileFactory.h" />
+    <ClInclude Include="..\..\SharedCode\HierarchicalFileSystem.h" />
+    <ClInclude Include="..\..\SharedCode\ImageFile.h" />
+    <ClInclude Include="..\..\SharedCode\LSCommand.h" />
+    <ClInclude Include="..\..\SharedCode\MetadataDisplayVisitor.h" />
+    <ClInclude Include="..\..\SharedCode\PasswordProxy.h" />
+    <ClInclude Include="..\..\SharedCode\RemoveCommand.h" />
+    <ClInclude Include="..\..\SharedCode\SimpleFileFactory.h" />
+    <ClInclude Include="..\..\SharedCode\SimpleFileSystem.h" />
+    <ClInclude Include="..\..\SharedCode\TextFile.h" />
+    <ClInclude Include="..\..\SharedCode\TouchCommand.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

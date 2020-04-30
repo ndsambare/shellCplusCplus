@@ -7,17 +7,19 @@
 
 void MetadataDisplayVisitor::visit_ImageFile(ImageFile* imgfile) {
 	//print file name
-	cout << imgfile->getName() << endl;
+	cout << imgfile->getName() <<" ";
+	//print file type
+	cout << "image" << " ";
 	//print file size
 	cout << imgfile->getSize() << endl;
-	//print file type
-	cout << "image" << endl;
+	
 }
 void MetadataDisplayVisitor::visit_TextFile(TextFile* txtfile) {
 	//print file name
-	cout << txtfile->getName() << endl;
+	cout << txtfile->getName() << " ";
+	//print file type
+	cout << "text" << " ";
 	//print file size
 	cout << txtfile->getSize() << endl;
-	//print file type
-	cout << "text" << endl;
+	
 }

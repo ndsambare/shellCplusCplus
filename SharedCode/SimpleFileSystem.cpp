@@ -87,3 +87,17 @@ int SimpleFileSystem::addFile(string nameOfFile, AbstractFile* pointerFile) {
 	return Succ;
 }
 
+set<string> SimpleFileSystem::getFileNames() {
+	map<string, AbstractFile*>::iterator it = fileInSystem.begin();
+
+	set<string> names;
+	for (pair<string, AbstractFile*> element : fileInSystem) {
+		
+
+		string word = element.first;
+		names.insert(word);
+	    
+	}
+	return names; 
+}
+

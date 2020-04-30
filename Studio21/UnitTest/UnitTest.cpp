@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
+
 #define protected public
 #include "../../SharedCode/TextFile.cpp"
 #include "../../SharedCode/ImageFile.cpp"
@@ -7,12 +8,12 @@
 #include "../../SharedCode/SimpleFileSystem.cpp"
 #include "../../SharedCode/BasicDisplayVisitor.cpp"
 #include "../../SharedCode/MetadataDisplayVisitor.cpp"
-#include "../../SharedCode/DirectoryFile.cpp"
-#include "../../SharedCode/HierarchicalFileSystem.cpp"
-#include "..//..//SharedCode/HierarchicalFileFactory.cpp"
-#include "..//..//SharedCode/CommandPrompt.cpp"
-#include "..//..//SharedCode/CommandTest.cpp"
-#include "..//..//SharedCode/TouchCommand.cpp"
+#include "../../SharedCode/PasswordProxy.cpp"
+#include "../../SharedCode/TouchCommand.cpp"
+#include "../../SharedCode/CommandPrompt.cpp"
+#include "../../SharedCode/CommandTest.cpp"
+#include "..//..//SharedCode/LSCommand.cpp"
+#include "..//..//SharedCode/RemoveCommand.cpp"
 #undef protected
 
 
@@ -24,15 +25,13 @@ namespace UnitTest
 	{
 	public:
 
-		TEST_METHOD(contstructor)  // checks that the file is initialized with proper name and size, expects size to be 0, the name to match the input to the constructor, and the parent to be nullptr
+		TEST_METHOD(contstructor)  // checks that the file is initialized with proper name and size, expects size to be 0 and the name to match the input to the constructor
 		{
 			std::string fileName = "FileName.txt";
 			unsigned int fileSize = 0;
 			TextFile t(fileName);
 			Assert::AreEqual(t.getName(), fileName);
 			Assert::AreEqual(t.getSize(), fileSize);
-			bool isnull = t.getParent() == nullptr;
-			Assert::IsTrue(isnull);
 		}
 		TEST_METHOD(write) // tests write, expects that the function returns success and that the size of the file is updated correctly
 		{
@@ -61,7 +60,7 @@ namespace UnitTest
 			std::vector<char> v = { 'h', 'i' };
 			Assert::AreEqual(t.write(v), 0);
 			std::vector<char> contents = t.read();
-			Assert::AreEqual(t.getSize(), v.size());
+			Assert::AreEqual(t.getSize(), static_cast<unsigned int>(v.size()));
 			Assert::AreEqual(contents.size(), v.size());
 			for (size_t i = 0; i < contents.size(); ++i) {
 				Assert::AreEqual(v[i], contents[i]);
@@ -81,44 +80,20 @@ namespace UnitTest
 			for (size_t i = 0; i < contents.size(); ++i) {
 				Assert::AreEqual(newExpectedV[i], contents[i]);
 			}
-		}
-		TEST_METHOD(addChildValid) { // checks that addChild returns an error for a textfile
-			AbstractFile* parent = new TextFile("TestParent.txt");
-			AbstractFile* child = new TextFile("TestChild.txt");
-			Assert::AreNotEqual(parent->addChild(child), 0);
-		}
-		TEST_METHOD(removeChildValid) { // checks removeChild returns an error for a textfile
-			AbstractFile* parent = new TextFile("TestParent.txt");
-			AbstractFile* child = new TextFile("TestChild.txt");
-			Assert::AreNotEqual(parent->removeChild(child->getName()), 0);
-		}
-		TEST_METHOD(getChildValid) { // checks getChild returns a nullptr for a textfile
-			AbstractFile* parent = new TextFile("TestParent.txt");
-			AbstractFile* child = new TextFile("TestChild.txt");
-			bool isNull = parent->getChild(child->getName()) == nullptr;
-			Assert::IsTrue(isNull);
-		}
-		TEST_METHOD(getSetParentValid) { // checks that when you set a textfile's parent, getParent returns what you first set it to be
-			AbstractFile* parent = new TextFile("TestParent.txt");
-			AbstractFile* child = new TextFile("TestChild.txt");
-			child->setParent(parent);
-			bool same = child->getParent() == parent;
-			Assert::IsTrue(same);
+
 		}
 	};
 	TEST_CLASS(imageFile)
 	{
 	public:
 
-		TEST_METHOD(contstructor) // checks that the file is initialized with proper name and size, expects size to be 0, the name to match the input to the constructor, and the parent to be nullptr
+		TEST_METHOD(contstructor) // checks that the file is initialized with proper name and size, expects size to be 0 and the name to match the input to the constructor
 		{
 			std::string fileName = "FileName.img";
 			unsigned int fileSize = 0;
 			ImageFile t(fileName);
 			Assert::AreEqual(t.getName(), fileName);
 			Assert::AreEqual(t.getSize(), fileSize);
-			bool isnull = t.getParent() == nullptr;
-			Assert::IsTrue(isnull);
 		}
 		TEST_METHOD(writeValid) // tests write with a valid vector input, expects write to return success, and the size of the contents to be equal to that of the input vector -1 (for the last index that is removed
 		{
@@ -166,29 +141,6 @@ namespace UnitTest
 			for (size_t i = 0; i < contents.size(); ++i) {
 				Assert::AreEqual(contents[i], v[i]);
 			}
-		}
-		TEST_METHOD(addChildValid) { // checks addChild returns an error value for an image file
-			AbstractFile* parent = new ImageFile("TestParent.img");
-			AbstractFile* child = new ImageFile("TestChild.img");
-			Assert::AreNotEqual(parent->addChild(child), 0);
-		}
-		TEST_METHOD(removeChildValid) { // checks removeChild returns an error value for an image file
-			AbstractFile* parent = new ImageFile("TestParent.img");
-			AbstractFile* child = new ImageFile("TestChild.img");
-			Assert::AreNotEqual(parent->removeChild(child->getName()), 0);
-		}
-		TEST_METHOD(getChildValid) { // checks getChild returns a nullptr for an image file
-			AbstractFile* parent = new ImageFile("TestParent.img");
-			AbstractFile* child = new ImageFile("TestChild.img");
-			bool isNull = parent->getChild(child->getName()) == nullptr;
-			Assert::IsTrue(isNull);
-		}
-		TEST_METHOD(getSetParentValid) { // checks that if you set a parent, getParent will return the same file you set it to be
-			AbstractFile* parent = new ImageFile("TestParent.img");
-			AbstractFile* child = new ImageFile("TestChild.img");
-			child->setParent(parent);
-			bool same = child->getParent() == parent;
-			Assert::IsTrue(same);
 		}
 	};
 	TEST_CLASS(simpleFileSystem)
@@ -293,23 +245,15 @@ namespace UnitTest
 	};
 	TEST_CLASS(simpleFileFactory) {
 public:
-	TEST_METHOD(createFileValid) // creates two files by calling create on the file factory, the calls should return the new file objects that are both not null, the name and type of the new file is also checked
+	TEST_METHOD(createFileValid) // creates two files by calling create on the file factory, the calls should return the new file objects that are both not null
 	{
-		HierarchicalFileFactory hff;
-		AbstractFile* res1 = hff.createFile("FileName.img");
+		SimpleFileFactory sff;
+		AbstractFile* res1 = sff.createFile("FileName.img");
 		bool isNull1 = res1 == nullptr;
 		Assert::IsFalse(isNull1);
-		Assert::AreEqual(res1->getName(), static_cast<string>("FileName.img"));
-		ImageFile* img = dynamic_cast<ImageFile*>(res1);
-		bool isImg = img == nullptr;
-		Assert::IsFalse(isImg);
-		AbstractFile* res2 = hff.createFile("FileName.txt");
+		AbstractFile* res2 = sff.createFile("FileName.txt");
 		bool isNull2 = res2 == nullptr;
 		Assert::IsFalse(isNull2);
-		Assert::AreEqual(res2->getName(), static_cast<string>("FileName.txt"));
-		TextFile* txt = dynamic_cast<TextFile*>(res2);
-		bool isTxt = txt == nullptr;
-		Assert::IsFalse(isTxt);
 	}
 	TEST_METHOD(createUnknownExtension) // when a bad extension is passed, the factory should pass back a nullptr
 	{
@@ -319,6 +263,8 @@ public:
 		Assert::IsTrue(isNull);
 	}
 	};
+
+
 	TEST_CLASS(basicDisplayVisitor) {
 public:
 	TEST_METHOD(visitTextFile) { // tests output of basic display visitor for a text file, expects the contents of the file
@@ -342,9 +288,9 @@ public:
 		Assert::AreEqual(resWrite, 0);
 	}
 	TEST_METHOD(visitImageFile) { // tests the output the basic display visitor for an image file, expects 5 Xs
-		string fileName = "FileName.img";
+		std::string fileName = "FileName.img";
 		ImageFile t(fileName);
-		vector<char> v = { 'X', ' ', 'X', ' ', 'X', ' ', 'X',' ', 'X', '3' };
+		std::vector<char> v = { 'X', ' ', 'X', ' ', 'X', ' ', 'X',' ', 'X', '3' };
 		Assert::AreEqual(t.write(v), 0);
 		// REDIRECT STD STREAM
 		streambuf* backup;
@@ -364,33 +310,6 @@ public:
 		cout.rdbuf(backup);
 		Assert::AreEqual(count, 5);
 	}
-	TEST_METHOD(visitDirectoryFile) { // tests the output the basic display visitor for an image file, expects the two files that are children of the directory
-		HierarchicalFileSystem hfs;
-		string filename = "directory1";
-		AbstractFile* d1 = new DirectoryFile(filename);
-		AbstractFile* file1 = new TextFile("filename1.txt");
-		AbstractFile* file2 = new TextFile("filename2.txt");
-		Assert::AreEqual(hfs.addFile("root/directory1", d1), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/filename1.txt", file1), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/filename2.txt", file2), 0);
-		// REDIRECT STD STREAM
-		streambuf* backup;
-		backup = cout.rdbuf();
-		stringstream ss;
-		cout.rdbuf(ss.rdbuf());
-		AbstractFileVisitor* bdv = new BasicDisplayVisitor;
-		d1->accept(bdv);
-		string wordShouldBe1 = "filename1.txt";
-		string wordShouldBe2 = "filename2.txt";
-		string word1;
-		string word2;
-		ss >> word1;
-		ss >> word2;
-		// ASSIGN COUT BACK TO STDOUT
-		cout.rdbuf(backup);
-		Assert::AreEqual(word1, wordShouldBe1);
-		Assert::AreEqual(word2, wordShouldBe2);
-	}
 	};
 	TEST_CLASS(metadataDisplayVisitor) {
 public:
@@ -404,8 +323,8 @@ public:
 		backup = cout.rdbuf();
 		stringstream ss;
 		cout.rdbuf(ss.rdbuf());
-		AbstractFileVisitor* mdv = new MetadataDisplayVisitor;
-		t.accept(mdv);
+		AbstractFileVisitor* bdv = new MetadataDisplayVisitor;
+		t.accept(bdv);
 		string word;
 		std::vector<string> printedWords;
 		while (ss >> word) {
@@ -436,8 +355,8 @@ public:
 		backup = cout.rdbuf();
 		stringstream ss;
 		cout.rdbuf(ss.rdbuf());
-		AbstractFileVisitor* mdv = new MetadataDisplayVisitor;
-		t.accept(mdv);
+		AbstractFileVisitor* bdv = new MetadataDisplayVisitor;
+		t.accept(bdv);
 		string word;
 		std::vector<string> printedWords;
 		while (ss >> word) {
@@ -458,481 +377,33 @@ public:
 		// ASSIGN COUT BACK TO STDOUT
 		cout.rdbuf(backup);
 	}
-	TEST_METHOD(visitDirectoryFile) { // tests the output of the metadata display visitor for a directory file, expects the filename, type and size to be included in the print statement
-		HierarchicalFileSystem hfs;
-		string filename = "directory1";
-		AbstractFile* d1 = new DirectoryFile(filename);
-		AbstractFile* file = new TextFile("filename.txt");
-		Assert::AreEqual(hfs.addFile("root/directory1", d1), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/filename.txt", file), 0);
-		// REDIRECT STD STREAM
-		streambuf* backup;
-		backup = cout.rdbuf();
-		stringstream ss;
-		cout.rdbuf(ss.rdbuf());
-		AbstractFileVisitor* mdv = new MetadataDisplayVisitor;
-		d1->accept(mdv);
-		string word;
-		std::vector<string> printedWords;
-		while (ss >> word) {
-			printedWords.push_back(word);
-		}
-		std::vector<string>::iterator it1;
-		std::vector<string>::iterator it2;
-		std::vector<string>::iterator it3;
-		it1 = std::find(printedWords.begin(), printedWords.end(), filename);
-		bool notEqual1 = it1 == printedWords.end();
-		Assert::IsFalse(notEqual1);
-		it2 = std::find(printedWords.begin(), printedWords.end(), to_string(d1->getSize()));
-		bool notEqual2 = it2 == printedWords.end();
-		Assert::IsFalse(notEqual2);
-		it3 = std::find(printedWords.begin(), printedWords.end(), "directory");
-		bool notEqual3 = it3 == printedWords.end();
-		Assert::IsFalse(notEqual3);
-		// ASSIGN COUT BACK TO STDOUT
-		cout.rdbuf(backup);
-	}
 	};
-	TEST_CLASS(directoryFile) { //not tested: destructor, read, getSize, accept
-public:
-	TEST_METHOD(contstructor) { // checks that the file is initialized with proper name and parent, expects the name to be the same as is passed to the constructor and the parent to initially be a nullptr
-		std::string filename = "filename.txt";
-		DirectoryFile t(filename);
-		Assert::AreEqual(t.getName(), filename);
-		bool isnull = t.getParent() == nullptr;
-		Assert::IsTrue(isnull);
-	}
-	TEST_METHOD(writevalid) { // checks the write function, expects an error suggesting you can't write to a directory and contents to be unchanged
-		std::string filename = "filename";
-		DirectoryFile t(filename);
-		std::vector<char> v;
-		v.push_back('h');
-		v.push_back('i');
-		Assert::AreNotEqual(t.write(v), 0);
-		Assert::AreEqual(t.getSize(), static_cast<unsigned int>(0));
-	}
-	TEST_METHOD(appendvalid) {  // checks the append function, expects an error suggesting you can't append to a directory and contents to be unchanged
-		std::string filename = "filename.txt";
-		DirectoryFile t(filename);
-		std::vector<char> v;
-		v.push_back('h');
-		v.push_back('i');
-		Assert::AreNotEqual(t.append(v), 0);
-		Assert::AreEqual(t.getSize(), static_cast<unsigned int>(0));
-	}
-	TEST_METHOD(getChildExists) {  // checks the getChild function, expects f1 to be a child of d when addChild is called, getChild should return the original text file, f1
-		std::string directoryname = "files";
-		AbstractFile* d = new DirectoryFile(directoryname);
-		std::string filename = "file1.txt";
-		AbstractFile* f1 = new TextFile(filename);
-		d->addChild(f1);
-		AbstractFile* child = d->getChild(filename);
-		bool aresame = child == f1;
-		Assert::IsTrue(aresame);
-	}
-	TEST_METHOD(getChildDoesNotExists) { // in this case, we expect the child to not exist since it was never added, therefore we expect getChild to return a nullptr
-		std::string directoryname = "files";
-		AbstractFile* d = new DirectoryFile(directoryname);
-		std::string filename = "file1.txt";
-		AbstractFile* f1 = new TextFile(filename);
-		AbstractFile* child = d->getChild(filename);
-		bool aresame = child == nullptr;
-		Assert::IsTrue(aresame);
-	}
-	TEST_METHOD(addChildValid) { // checks addChild function, expects addChild to return success and that the child's filename was added to the contents of the directory
-		std::string directoryname = "files";
-		AbstractFile* d = new DirectoryFile(directoryname);
-		std::string filename = "file1.txt";
-		AbstractFile* f1 = new TextFile(filename);
-		Assert::AreEqual(d->addChild(f1), 0);
-		vector<char> contents = d->read();
-		char* searchString = "file1.txt\n";
-		auto it = search(contents.begin(), contents.end(), searchString, searchString + strlen(searchString));
-		bool same = it == contents.end();
-		Assert::IsFalse(same);
-		int occurrences = 1;
-		while (it != contents.end()) {
-			++it;
-			it = search(it, contents.end(), searchString, searchString + strlen(searchString));
-			if (it != contents.end()) {
-				++occurrences;
-			}
+	TEST_CLASS(passwordProxy)
+	{
+	public:
+
+		TEST_METHOD(contstructor) // we expect the name and size of the password proxy to match that of the text file it is assigned with
+		{
+			// CREATE FILE AND FILE PROXY
+			std::string fileName = "file1.txt";
+			AbstractFile* realfile = new TextFile(fileName);
+			string password = "r4A3dg";
+			PasswordProxy* pp = new PasswordProxy(realfile, password);
+			unsigned int fileSize = 0;
+			// EXPECTATIONS FOR CONSTRUCTION
+			Assert::AreEqual(pp->getName(), fileName);
+			Assert::AreEqual(pp->getSize(), fileSize);
+			Assert::AreEqual(realfile->getName(), fileName);
+			Assert::AreEqual(realfile->getSize(), fileSize);
 		}
-		Assert::AreEqual(occurrences, 1);
-	}
-	TEST_METHOD(addChildAlreadyExists) { // checks case when a file is added as a child twice, expects an error from the second add child, but the name should still exist in the contents of the directory (but only 1 time)
-		std::string directoryname = "files";
-		AbstractFile* d = new DirectoryFile(directoryname);
-		std::string filename = "file1.txt";
-		AbstractFile* f1 = new TextFile(filename);
-		d->addChild(f1);
-		Assert::AreNotEqual(d->addChild(f1), 0);
-		vector<char> contents = d->read();
-		char* searchString = "file1.txt\n";
-		auto it = search(contents.begin(), contents.end(), searchString, searchString + strlen(searchString));
-		bool same = it == contents.end();
-		Assert::IsFalse(same);
-		int occurrences = 1;
-		while (it != contents.end()) {
-			++it;
-			it = search(it, contents.end(), searchString, searchString + strlen(searchString));
-			if (it != contents.end()) {
-				++occurrences;
-			}
-		}
-		Assert::AreEqual(occurrences, 1);
-	}
-	TEST_METHOD(removeChildValid) { // checks removeChild function, after the file is added as a child, we expect success when calling removeChild, we also expect the filename to be erased from the contents of the directory
-		std::string directoryname = "files";
-		AbstractFile* d = new DirectoryFile(directoryname);
-		std::string filename = "file1.txt";
-		AbstractFile* f1 = new TextFile(filename);
-		d->addChild(f1);
-		Assert::AreEqual(d->removeChild(filename), 0);
-		vector<char> contents = d->read();
-		char* searchString = "file1.txt\n";
-		auto it = search(contents.begin(), contents.end(), searchString, searchString + strlen(searchString));
-		bool same = it == contents.end();
-		Assert::IsTrue(same);
-	}
-	TEST_METHOD(removeChildDoesNotExist) { // in this case the child we are trying to remove was never added, we expect an error, the contents should not contain the filename we are trying to remove
-		std::string directoryname = "files";
-		AbstractFile* d = new DirectoryFile(directoryname);
-		std::string filename = "file1.txt";
-		AbstractFile* f1 = new TextFile(filename);
-		Assert::AreNotEqual(d->removeChild(filename), 0);
-		vector<char> contents = d->read();
-		char* searchString = "file1.txt\n";
-		auto it = search(contents.begin(), contents.end(), searchString, searchString + strlen(searchString));
-		bool same = it == contents.end();
-		Assert::IsTrue(same);
-	}
-	TEST_METHOD(getSetParentValid) { // checks the get and set parent functions, we should get the same parent that we first set!
-		AbstractFile* parent = new DirectoryFile("TestParent");
-		AbstractFile* child = new DirectoryFile("TestChild");
-		child->setParent(parent);
-		bool same = child->getParent() == parent;
-		Assert::IsTrue(same);
-	}
-	};
-	TEST_CLASS(hierarchicalFileSystem) { //not tested: constructor, destructor
-public:
-	TEST_METHOD(parsePathValid) { // checks the parsePath helper function, we expect the function to return the file at the end of the path if the path is valid
-		string path = "root/directory1/directory2/filename.txt";
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("directory1");
-		AbstractFile* d2 = new DirectoryFile("directory2");
-		AbstractFile* file = new TextFile("filename.txt");
-		Assert::AreEqual(hfs.addFile("root/directory1", d1), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/directory2", d2), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/directory2/filename.txt", file), 0);
-		AbstractFile* returnedFile = hfs.parsePath(path);
-		bool areSame = returnedFile == file;
-		Assert::IsTrue(areSame);
-	}
-	TEST_METHOD(parsePathInvalidPathNoRoot) { /// we expect parsePath to return an nullptr if the path is invalid (does not start with root)
-		string path = "directory1/directory2/filename.txt";
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("directory1");
-		AbstractFile* d2 = new DirectoryFile("directory2");
-		AbstractFile* file = new TextFile("filename.txt");
-		Assert::AreEqual(hfs.addFile("root/directory1", d1), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/directory2", d2), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/directory2/filename.txt", file), 0);
-		AbstractFile* returnedFile = hfs.parsePath(path);
-		bool areSame = returnedFile == nullptr;
-		Assert::IsTrue(areSame);
-	}
-	TEST_METHOD(parsePathIsRoot) { // we expect in this case to get the root file back from the parsePath function
-		string path = "root";
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("directory1");
-		AbstractFile* d2 = new DirectoryFile("directory2");
-		AbstractFile* file = new TextFile("filename.txt");
-		Assert::AreEqual(hfs.addFile("root/directory1", d1), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/directory2", d2), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/directory2/filename.txt", file), 0);
-		AbstractFile* returnedFile = hfs.parsePath(path);
-		Assert::AreEqual(returnedFile->getName(), static_cast<string>("root"));
-	}
-	TEST_METHOD(parsePathInvalidPath) { // we expect a nullptr to be returned, the path being passed to parsePath does not match the filesystem created (directory3 does not exist!)
-		string path = "root/directory1/filename.txt";
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("directory1");
-		AbstractFile* d2 = new DirectoryFile("directory2");
-		AbstractFile* file = new TextFile("filename.txt");
-		Assert::AreEqual(hfs.addFile("root/directory1", d1), 0);
-		Assert::AreEqual(hfs.addFile("root/directory1/directory2", d2), 0);
-		Assert::AreNotEqual(hfs.addFile("root/directory1/directory3/filename.txt", file), 0);
-		AbstractFile* returnedFile = hfs.parsePath(path);
-		bool areSame = returnedFile == nullptr;
-		Assert::IsTrue(areSame);
-	}
-	TEST_METHOD(openFileValid) { // after a file has been successfully added, we expect that the openFile function will return the same file we added to the given path
-		HierarchicalFileSystem hfs;
-		DirectoryFile* d1 = new DirectoryFile("files");
-		string filepath = "root/files";
-		Assert::AreEqual(hfs.addFile(filepath, d1), 0);
-		AbstractFile* o1 = hfs.openFile(filepath);
-		bool areSame = o1 == d1;
-		Assert::IsTrue(areSame);
-	}
-	TEST_METHOD(openFileDoesNotExist) {  // if the file does not exist at the file path, openFile should return a nullptr (in this case, it is never added)
-		HierarchicalFileSystem hfs;
-		string filepath = "root/files";
-		AbstractFile* o1 = hfs.openFile(filepath);
-		bool isNull = o1 == nullptr;
-		Assert::IsTrue(isNull);
-	}
-	TEST_METHOD(openFileAlreadyOpen) {  // if the file is already open, openFile should return a nullptr 
-		HierarchicalFileSystem hfs;
-		DirectoryFile* d1 = new DirectoryFile("files");
-		string filepath = "root/files";
-		Assert::AreEqual(hfs.addFile(filepath, d1), 0);
-		AbstractFile* o1 = hfs.openFile(filepath);
-		bool isNull = o1 == nullptr;
-		Assert::IsFalse(isNull);
-		AbstractFile* o2 = hfs.openFile(filepath);
-		bool isNull2 = o2 == nullptr;
-		Assert::IsTrue(isNull2);
-	}
-	TEST_METHOD(openFileInvalidPath) { // if the file does not exist at the given path (but exists elsewhere), openFile should still return a nullptr
-		HierarchicalFileSystem hfs;
-		DirectoryFile* d1 = new DirectoryFile("files");
-		string filepath = "root/files";
-		Assert::AreEqual(hfs.addFile(filepath, d1), 0);
-		AbstractFile* o1 = hfs.openFile("root/directory/files");
-		bool isNull = o1 == nullptr;
-		Assert::IsTrue(isNull);
-	}
-	TEST_METHOD(closeFileValid) { // if a file is added and opened, we expect closeFile to return success and to be able to successfully call open file again 
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("files");
-		string filepath = "root/files";
-		Assert::AreEqual(hfs.addFile(filepath, d1), 0);
-		AbstractFile* returnedFile = hfs.openFile(filepath);
-		bool same = returnedFile == d1;
-		Assert::IsTrue(same);
-		Assert::AreEqual(hfs.closeFile(d1), 0);
-		AbstractFile* returnedFile2 = hfs.openFile(filepath);
-		same = returnedFile2 == d1;
-		Assert::IsTrue(same);
-	}
-	TEST_METHOD(closeFileNotOpen) { // if the file exists, but is not opened, we expect closeFile to return an error
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("files");
-		string filepath = "root/files";
-		Assert::AreEqual(hfs.addFile(filepath, d1), 0);
-		Assert::AreNotEqual(hfs.closeFile(d1), 0);
-	}
-	TEST_METHOD(deleteFileValid) { // if a file is properly added and then deleted, we expect it to be removed as a child from its parent
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("files");
-		AbstractFile* f1 = new TextFile("textfile.txt");
-		string directorypath = "root/files";
-		string filepath = "root/files/textfile.txt";
-		Assert::AreEqual(hfs.addFile(directorypath, d1), 0);
-		Assert::AreEqual(hfs.addFile(filepath, f1), 0);
-		Assert::AreEqual(hfs.deleteFile(filepath), 0);
-		Assert::AreEqual(d1->getParent()->getName(), static_cast<string>("root"));
-		AbstractFile* directoryChild = d1->getChild("textfile.txt");
-		bool same = directoryChild == nullptr;
-		Assert::IsTrue(same);
-		// additional check that the file has been removed from the system using parsePath (parsePath checks must pass for this to work)
-		AbstractFile* ret = hfs.parsePath(filepath);
-		bool isNull = ret == nullptr;
-		Assert::IsTrue(isNull);
-	}
-	TEST_METHOD(deleteInvalidPath) { // if the path given to delete the file is invalid, then we expect the parent/child relationship to remain the same
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("files");
-		AbstractFile* f1 = new TextFile("textfile.txt");
-		string directorypath = "root/files";
-		string filepath = "root/files/textfile.txt";
-		Assert::AreEqual(hfs.addFile(directorypath, d1), 0);
-		Assert::AreEqual(hfs.addFile(filepath, f1), 0);
-		Assert::AreNotEqual(hfs.deleteFile("root/textfile.txt"), 0);
-		Assert::AreEqual(f1->getParent()->getName(), static_cast<string>("files"));
-		AbstractFile* directoryChild = d1->getChild("textfile.txt");
-		bool same = directoryChild == f1;
-		Assert::IsTrue(same);
-		// additional check that the file has NOT been removed from the system using parsePath (parsePath checks must pass for this to work)
-		AbstractFile* ret = hfs.parsePath(filepath);
-		same = ret == f1;
-		Assert::IsTrue(same);
-	}
-	TEST_METHOD(deleteFileInvalidRoot) { // if we try to delete the root, we should recieve an error value returned
-		HierarchicalFileSystem hfs;
-		Assert::AreNotEqual(hfs.deleteFile("root"), 0);
-	}
-	TEST_METHOD(deleteFileInvalidOpenFile) { // if we try to delete an open file, we should recieve an error and the parent/child relationship should remain the same
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("files");
-		AbstractFile* f1 = new TextFile("textfile.txt");
-		string directorypath = "root/files";
-		string filepath = "root/files/textfile.txt";
-		Assert::AreEqual(hfs.addFile(directorypath, d1), 0);
-		Assert::AreEqual(hfs.addFile(filepath, f1), 0);
-		AbstractFile* returnedFile = hfs.openFile(filepath);
-		bool same = returnedFile == f1;
-		Assert::IsTrue(same);
-		Assert::AreNotEqual(hfs.deleteFile(filepath), 0);
-		Assert::AreEqual(f1->getParent()->getName(), static_cast<string>("files"));
-		AbstractFile* directoryChild = d1->getChild("textfile.txt");
-		same = directoryChild == f1;
-		Assert::IsTrue(same);
-		// additional check that the file has NOT been removed from the system using parsePath (parsePath checks must pass for this to work)
-		AbstractFile* ret = hfs.parsePath(filepath);
-		same = ret == f1;
-		Assert::IsTrue(same);
-	}
-	TEST_METHOD(addFileValid) { // check that parent and child relationship is properly set when adding valid files to the system
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("files");
-		AbstractFile* f1 = new TextFile("textfile.txt");
-		string directorypath = "root/files";
-		string filepath = "root/files/textfile.txt";
-		Assert::AreEqual(hfs.addFile(directorypath, d1), 0);
-		Assert::AreEqual(hfs.addFile(filepath, f1), 0);
-		Assert::AreEqual(d1->getParent()->getName(), static_cast<string>("root"));
-		Assert::AreEqual(f1->getParent()->getName(), static_cast<string>("files"));
-		AbstractFile* directoryChild = d1->getChild("textfile.txt");
-		bool same = directoryChild == f1;
-		Assert::IsTrue(same);
-		// additional check that the file has been added to the system using parsePath (parsePath checks must pass for this to work)
-		AbstractFile* ret = hfs.parsePath(filepath);
-		same = ret == f1;
-		Assert::IsTrue(same);
-	}
-	TEST_METHOD(addNullFile) { // when adding a nullptr as a file we expect an error return value, and the directory file should not have a child
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("files");
-		AbstractFile* f1 = nullptr;
-		string directorypath = "root/files";
-		string filepath = "root/files/textfile.txt";
-		Assert::AreEqual(hfs.addFile(directorypath, d1), 0);
-		Assert::AreNotEqual(hfs.addFile(filepath, f1), 0);
-		Assert::AreEqual(d1->getParent()->getName(), static_cast<string>("root"));
-		AbstractFile* directoryChild = d1->getChild("textfile.txt");
-		bool same = directoryChild == nullptr;
-		Assert::IsTrue(same);
-		// additional check that the file has NOT been added to the system using parsePath (parsePath checks must pass for this to work)
-		AbstractFile* ret = hfs.parsePath(filepath);
-		bool isNull = ret == nullptr;
-		Assert::IsTrue(isNull);
-	}
-	TEST_METHOD(addFileBadPath) { // check the case of a bad filepath, the new file should not be added as a child and we expect an error return value
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("files");
-		AbstractFile* f1 = new TextFile("textfile.txt");
-		string directorypath = "root/files";
-		string filepath = "root/newfiles/textfile.txt";
-		Assert::AreEqual(hfs.addFile(directorypath, d1), 0);
-		Assert::AreNotEqual(hfs.addFile(filepath, f1), 0);
-		Assert::AreEqual(d1->getParent()->getName(), static_cast<string>("root"));
-		AbstractFile* directoryChild = d1->getChild("textfile.txt");
-		bool same = directoryChild == nullptr;
-		Assert::IsTrue(same);
-		// additional check that the file has NOT been added to the system using parsePath (parsePath checks must pass for this to work)
-		AbstractFile* ret = hfs.parsePath(filepath);
-		bool isNull = ret == nullptr;
-		Assert::IsTrue(isNull);
-	}
-	TEST_METHOD(addFileAlreadyExists) { // check the case of adding a file that already exists in a directory, the new file should not be added as a child again and we expect an error return value
-		HierarchicalFileSystem hfs;
-		AbstractFile* d1 = new DirectoryFile("files");
-		AbstractFile* f1 = new TextFile("textfile.txt");
-		string directorypath = "root/files";
-		string filepath = "root/files/textfile.txt";
-		Assert::AreEqual(hfs.addFile(directorypath, d1), 0);
-		Assert::AreEqual(hfs.addFile(filepath, f1), 0);
-		Assert::AreNotEqual(hfs.addFile(filepath, f1), 0);
-		Assert::AreEqual(d1->getParent()->getName(), static_cast<string>("root"));
-		Assert::AreEqual(f1->getParent()->getName(), static_cast<string>("files"));
-		AbstractFile* directoryChild = d1->getChild("textfile.txt");
-		bool same = directoryChild == f1;
-		Assert::IsTrue(same);
-		// additional check that the file has been added once to the system using parsePath (parsePath checks must pass for this to work)
-		AbstractFile* ret = hfs.parsePath(filepath);
-		same = ret == f1;
-		Assert::IsTrue(same);
-	}
-	};
-	TEST_CLASS(hierarchicalFileFactory) {
-public:
-	TEST_METHOD(createTxtFileValid) // creates a text file by calling create on the file factory, the call should return the new file object that is not null, the name and type of the new file is also checked
-	{
-		HierarchicalFileFactory hff;
-		AbstractFile* res2 = hff.createFile("FileName.txt");
-		bool isNull2 = res2 == nullptr;
-		Assert::IsFalse(isNull2);
-		Assert::AreEqual(res2->getName(), static_cast<string>("FileName.txt"));
-		TextFile* txt = dynamic_cast<TextFile*>(res2);
-		bool isTxt = txt == nullptr;
-		Assert::IsFalse(isTxt);
-	}
-	TEST_METHOD(createDirFileValid)// creates a directory file by calling create on the file factory, the call should return the new file object that is not null, the name and type of the new file is also checked
-	{
-		HierarchicalFileFactory hff;
-		AbstractFile* res3 = hff.createFile("DirectoryName");
-		bool isNull3 = res3 == nullptr;
-		Assert::IsFalse(isNull3);
-		Assert::AreEqual(res3->getName(), static_cast<string>("DirectoryName"));
-		DirectoryFile* dir = dynamic_cast<DirectoryFile*>(res3);
-		bool isDir = dir == nullptr;
-		Assert::IsFalse(isDir);
-	}
-	TEST_METHOD(createImgFileValid) // creates a image file by calling create on the file factory, the call should return the new file object that is not null, the name and type of the new file is also checked
-	{
-		HierarchicalFileFactory hff;
-		AbstractFile* res1 = hff.createFile("FileName.img");
-		bool isNull1 = res1 == nullptr;
-		Assert::IsFalse(isNull1);
-		Assert::AreEqual(res1->getName(), static_cast<string>("FileName.img"));
-		ImageFile* img = dynamic_cast<ImageFile*>(res1);
-		bool isImg = img == nullptr;
-		Assert::IsFalse(isImg);
-	}
-	TEST_METHOD(createUnknownExtension) // when a bad extension is passed, the factory should pass back a nullptr
-	{
-		SimpleFileFactory sfs;
-		AbstractFile* res1 = sfs.createFile("FileName.bla");
-		bool isNull = res1 == nullptr;
-		Assert::IsTrue(isNull);
-	}
-	};
-	TEST_CLASS(commandPrompt) {
-		TEST_METHOD(addAndListCommands) { // ensures the add command and list command are working correctly, we would expect the command name for the command we added to be printed out by the listCommand() method
-			HierarchicalFileSystem* hfs = new HierarchicalFileSystem();
-			HierarchicalFileFactory* hff = new HierarchicalFileFactory;
-			CommandTest* ct = new CommandTest(hfs, hff);
-			CommandPrompt cp;
-			cp.setFileSystem(hfs);
-			cp.setFileFactory(hff);
-			string commandname = "test";
-			Assert::AreEqual(cp.addCommand(commandname, ct), 0);
-			// REDIRECT STD STREAM
-			streambuf* backup;
-			backup = cout.rdbuf();
-			stringstream ss;
-			cout.rdbuf(ss.rdbuf());
-			cp.listCommands();
-			string word;
-			std::vector<string> printedWords;
-			while (ss >> word) {
-				printedWords.push_back(word);
-			}
-			Assert::AreEqual(static_cast<int>(printedWords.size()), 1);
-			Assert::AreEqual(printedWords[0], commandname);
-			// ASSIGN COUT BACK TO STDOUT
-			cout.rdbuf(backup);
-		}
-		TEST_METHOD(prompt) { // checks our prompt method, ensures that prompt returns what is passed in the terminal by the user
-			HierarchicalFileSystem* hfs = new HierarchicalFileSystem();
-			HierarchicalFileFactory* hff = new HierarchicalFileFactory;
-			CommandPrompt* cp = new CommandPrompt;
-			cp->setFileSystem(hfs);
-			cp->setFileFactory(hff);
+		TEST_METHOD(writeValidPassword) // with a valid password, we would expect the size of the pasword proxy and realfile to be updated and return the same value (the size of the vector)
+		{
+			// CREATE FILE AND FILE PROXY
+			std::string fileName = "file1.txt";
+			AbstractFile* realfile = new TextFile(fileName);
+			string password = "r4A3dg";
+			PasswordProxy* pp = new PasswordProxy(realfile, password);
+			vector<char> v = { 'h', 'i' };
 			// REDIRECT COUT STREAM
 			streambuf* backup_out;
 			backup_out = cout.rdbuf();
@@ -943,8 +414,330 @@ public:
 			backup_in = cin.rdbuf();
 			stringstream ss_in;
 			cin.rdbuf(ss_in.rdbuf());
-			string input = "touch root/file.txt";
+			// SET UP PASSWORD STREAM
+			ss_in << password;
+			// EXPECTATIONS FOR FUNCTION -- VALID PASSWORD
+			Assert::AreEqual(pp->write(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(v.size()));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(v.size()));
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup_out);
+			// ASSIGN CIN BACK TO STDIN
+			cin.rdbuf(backup_in);
+		}
+		TEST_METHOD(writeInvalidPassword) // if an incorrect password is given, write should not execute and the size of both the password proxy and the real file should remain 0
+		{
+			// CREATE FILE AND FILE PROXY
+			std::string fileName = "file1.txt";
+			AbstractFile* realfile = new TextFile(fileName);
+			string password = "r4A3dg";
+			PasswordProxy* pp = new PasswordProxy(realfile, password);
+			vector<char> v = { 'h', 'i' };
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// REDIRECT CIN STREAM
+			streambuf* backup_in;
+			backup_in = cin.rdbuf();
+			stringstream ss_in;
+			cin.rdbuf(ss_in.rdbuf());
+			// SET UP PASSWORD STREAM
+			string wrongPassword = "s9K3qL";
+			ss_in << wrongPassword;
+			// EXPECTATIONS FOR FUNCTION -- INVALID PASSWORD
+			Assert::AreNotEqual(pp->write(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(0));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(0));
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup_out);
+			// ASSIGN CIN BACK TO STDIN
+			cin.rdbuf(backup_in);
+		}
+		TEST_METHOD(appendValidPassword) // we expect that if a good password is given for write and for append, then the proxy and real file should both only have their sizes updated accordingly 
+		{
+			// CREATE FILE AND FILE PROXY
+			std::string fileName = "file1.txt";
+			AbstractFile* realfile = new TextFile(fileName);
+			string password = "r4A3dg";
+			PasswordProxy* pp = new PasswordProxy(realfile, password);
+			vector<char> v = { 'h', 'i' };
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// REDIRECT CIN STREAM
+			streambuf* backup_in;
+			backup_in = cin.rdbuf();
+			stringstream ss_in;
+			cin.rdbuf(ss_in.rdbuf());
+			// SET UP PASSWORD STREAM
+			ss_in << password + '\n' + password;
+			// EXPECTATIONS FOR FIRST FUNCTION -- VALID PASSWORD
+			Assert::AreEqual(pp->write(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(v.size()));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(v.size()));
+			unsigned int fileSize = pp->getSize();
+			// EXPECTATIONS FOR SECOND FUNCTION -- INVALID PASSWORD
+			Assert::AreEqual(pp->append(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(fileSize + v.size()));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(fileSize + v.size()));
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup_out);
+			// ASSIGN CIN BACK TO STDIN
+			cin.rdbuf(backup_in);
+
+		}
+		TEST_METHOD(appendInvalidPassword) //  we expect that if a good password is given for write, but an incorrect password is given for append, then the proxy and real file should both only have their sizes updated from the first write
+		{
+			// CREATE FILE AND FILE PROXY
+			std::string fileName = "file1.txt";
+			AbstractFile* realfile = new TextFile(fileName);
+			string password = "r4A3dg";
+			PasswordProxy* pp = new PasswordProxy(realfile, password);
+			vector<char> v = { 'h', 'i' };
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// REDIRECT CIN STREAM
+			streambuf* backup_in;
+			backup_in = cin.rdbuf();
+			stringstream ss_in;
+			cin.rdbuf(ss_in.rdbuf());
+			// SET UP PASSWORD STREAM
+			string wrongPassword = "a5lsdIK3";
+			ss_in << password + '\n' + wrongPassword;
+			// EXPECTATIONS FOR FIRST FUNCTION -- VALID PASSWORD
+			Assert::AreEqual(pp->write(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(v.size()));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(v.size()));
+			unsigned int fileSize = pp->getSize();
+			// EXPECTATIONS FOR SECOND FUNCTION -- INVALID PASSWORD
+			Assert::AreNotEqual(pp->append(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(fileSize));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(fileSize));
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup_out);
+			// ASSIGN CIN BACK TO STDIN
+			cin.rdbuf(backup_in);
+
+		}
+		TEST_METHOD(readValidPassword) // we would expect to see the effects of writing to the proxy with a valid password in the content returned by the read function -- when a valid password is given -- this should also match the read content of the real file
+		{
+			// CREATE FILE AND FILE PROXY
+			std::string fileName = "file1.txt";
+			AbstractFile* realfile = new TextFile(fileName);
+			string password = "r4A3dg";
+			PasswordProxy* pp = new PasswordProxy(realfile, password);
+			vector<char> v = { 'h', 'i' };
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// REDIRECT CIN STREAM
+			streambuf* backup_in;
+			backup_in = cin.rdbuf();
+			stringstream ss_in;
+			cin.rdbuf(ss_in.rdbuf());
+			// SET UP PASSWORD STREAM
+			ss_in << password + '\n' + password;
+			// EXPECTATIONS FOR FIRST FUNCTION -- VALID PASSWORD
+			Assert::AreEqual(pp->write(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(v.size()));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(v.size()));
+			// EXPECTATIONS FOR SECOND FUNCTION -- VALID PASSWORD
+			std::vector<char> contentsPP = pp->read();
+			Assert::AreEqual(contentsPP.size(), v.size());
+			for (size_t i = 0; i < contentsPP.size(); ++i) {
+				Assert::AreEqual(v[i], contentsPP[i]);
+			}
+			std::vector<char> contentsRF = realfile->read();
+			Assert::AreEqual(contentsRF.size(), v.size());
+			for (size_t i = 0; i < contentsRF.size(); ++i) {
+				Assert::AreEqual(v[i], contentsRF[i]);
+			}
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup_out);
+			// ASSIGN CIN BACK TO STDIN
+			cin.rdbuf(backup_in);
+		}
+		TEST_METHOD(readInvalidPassword) // when an invalid password is given for the read function, then we would expect the contents vector returned to be empty, however the original file, that does not require a password to read, should be updated from the valid write call
+		{
+			// CREATE FILE AND FILE PROXY
+			std::string fileName = "file1.txt";
+			AbstractFile* realfile = new TextFile(fileName);
+			string password = "r4A3dg";
+			PasswordProxy* pp = new PasswordProxy(realfile, password);
+			vector<char> v = { 'h', 'i' };
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// REDIRECT CIN STREAM
+			streambuf* backup_in;
+			backup_in = cin.rdbuf();
+			stringstream ss_in;
+			cin.rdbuf(ss_in.rdbuf());
+			// SET UP PASSWORD STREAM
+			string wrongPassword = "a5lsdIK3";
+			ss_in << password + '\n' + wrongPassword;
+			// EXPECTATIONS FOR FIRST FUNCTION -- VALID PASSWORD
+			Assert::AreEqual(pp->write(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(v.size()));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(v.size()));
+			// EXPECTATIONS FOR SECOND FUNCTION -- INVALID PASSWORD
+			std::vector<char> contentsPP = pp->read();
+			Assert::AreEqual(static_cast<int>(contentsPP.size()), 0);
+			std::vector<char> contentsRF = realfile->read();
+			Assert::AreEqual(contentsRF.size(), v.size());
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup_out);
+			// ASSIGN CIN BACK TO STDIN
+			cin.rdbuf(backup_in);
+		}
+		TEST_METHOD(acceptValidPassword) // we would expect "hi" -- the contents of the file -- to be printed when a valid password is given for accept
+		{
+			// CREATE FILE AND FILE PROXY
+			std::string fileName = "file1.txt";
+			AbstractFile* realfile = new TextFile(fileName);
+			string password = "r4A3dg";
+			PasswordProxy* pp = new PasswordProxy(realfile, password);
+			vector<char> v = { 'h', 'i' };
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// REDIRECT CIN STREAM
+			streambuf* backup_in;
+			backup_in = cin.rdbuf();
+			stringstream ss_in;
+			cin.rdbuf(ss_in.rdbuf());
+			// SET UP PASSWORD STREAM
+			ss_in << password + '\n' + password;
+			// EXPECTATIONS FOR FIRST FUNCTION -- VALID PASSWORD
+			Assert::AreEqual(pp->write(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(v.size()));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(v.size()));
+			// EXPECTATIONS FOR SECOND FUNCTION -- VALID PASSWORD
+			BasicDisplayVisitor* bdv = new BasicDisplayVisitor;
+			pp->accept(bdv);
+			string wordShouldBe = "hi";
+			string word;
+			vector<string> printedWords;
+			while (ss_out >> word) {
+				printedWords.push_back(word);
+			}
+			std::vector<string>::iterator it1;
+			it1 = std::find(printedWords.begin(), printedWords.end(), wordShouldBe);
+			bool isEqual = it1 == printedWords.end();
+			Assert::IsFalse(isEqual);
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup_out);
+			// ASSIGN CIN BACK TO STDIN
+			cin.rdbuf(backup_in);
+		}
+		TEST_METHOD(acceptInvalidPassword) // we do not expect "hi" (the contents of the file) to be printed when an invalid password is given for accept
+		{
+			// CREATE FILE AND FILE PROXY
+			std::string fileName = "file1.txt";
+			AbstractFile* realfile = new TextFile(fileName);
+			string password = "r4A3dg";
+			PasswordProxy* pp = new PasswordProxy(realfile, password);
+			vector<char> v = { 'h', 'i' };
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// REDIRECT CIN STREAM
+			streambuf* backup_in;
+			backup_in = cin.rdbuf();
+			stringstream ss_in;
+			cin.rdbuf(ss_in.rdbuf());
+			// SET UP PASSWORD STREAM
+			string wrongPassword = "a5lsdIK3";
+			ss_in << password + '\n' + wrongPassword;
+			// EXPECTATIONS FOR FIRST FUNCTION -- VALID PASSWORD
+			Assert::AreEqual(pp->write(v), 0);
+			Assert::AreEqual(pp->getSize(), static_cast<unsigned int>(v.size()));
+			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(v.size()));
+			// EXPECTATIONS FOR SECOND FUNCTION -- INVALID PASSWORD
+			BasicDisplayVisitor* bdv = new BasicDisplayVisitor;
+			pp->accept(bdv);
+			string wordShouldBe = "hi";
+			string word;
+			vector<string> printedWords;
+			while (ss_out >> word) {
+				printedWords.push_back(word);
+			}
+			std::vector<string>::iterator it1;
+			it1 = std::find(printedWords.begin(), printedWords.end(), wordShouldBe);
+			bool isEqual = it1 == printedWords.end();
+			Assert::IsTrue(isEqual);
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup_out);
+			// ASSIGN CIN BACK TO STDIN
+			cin.rdbuf(backup_in);
+		}
+	};
+	TEST_CLASS(commandPrompt) {
+		TEST_METHOD(addAndListCommands) { // ensures the add command and list command are working correctly, we would expect the command name for the command we added (in this case the testCommand) to be printed out by the listCommand() method
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			CommandPrompt cp;
+			cp.setFileSystem(sfs);
+			cp.setFileFactory(sff);
+			// ADD COMMAND -- TEST COMMAND
+			CommandTest* ct = new CommandTest(sfs);
+			string commandname = "test";
+			Assert::AreEqual(cp.addCommand(commandname, ct), 0);
+			// REDIRECT STD STREAM
+			streambuf* backup;
+			backup = cout.rdbuf();
+			stringstream ss;
+			cout.rdbuf(ss.rdbuf());
+			// LIST COMMANDS
+			cp.listCommands();
+			string word;
+			std::vector<string> printedWords;
+			while (ss >> word) {
+				printedWords.push_back(word);
+			}
+			// EXPECTATION -- COMMAND NAME SHOULD BE PRINTED TO COUT
+			Assert::AreEqual(static_cast<int>(printedWords.size()), 1);
+			Assert::AreEqual(printedWords[0], commandname);
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup);
+		}
+		TEST_METHOD(prompt) { // checks prompt method, ensures that prompt returns what is typed in the terminal by the filesystem user
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			CommandPrompt* cp = new CommandPrompt;
+			cp->setFileSystem(sfs);
+			cp->setFileFactory(sff);
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// REDIRECT CIN STREAM
+			streambuf* backup_in;
+			backup_in = cin.rdbuf();
+			stringstream ss_in;
+			cin.rdbuf(ss_in.rdbuf());
+			// MIMIC USER INPUT -- SAMPLE COMMAND FOR TOUCH
+			string input = "touch file.txt";
 			ss_in << input;
+			// EXPECTATION -- PROMPT SHOULD RETURN THE USER INPUT
 			string promptResponse = cp->prompt();
 			Assert::AreEqual(promptResponse, input);
 			// ASSIGN COUT BACK TO STDOUT
@@ -953,13 +746,12 @@ public:
 			cin.rdbuf(backup_in);
 		}
 		TEST_METHOD(runQuit) { // ensures that the run method ends when quit by the user (entering q), we would expect a non-zero return value
-			HierarchicalFileSystem* hfs = new HierarchicalFileSystem();
-			HierarchicalFileFactory* hff = new HierarchicalFileFactory;
-			TouchCommand* tc = new TouchCommand(hfs, hff);
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
 			CommandPrompt* cp = new CommandPrompt;
-			cp->setFileSystem(hfs);
-			cp->setFileFactory(hff);
-			Assert::AreEqual(cp->addCommand("touch", tc), 0);
+			cp->setFileSystem(sfs);
+			cp->setFileFactory(sff);
 			// REDIRECT COUT STREAM
 			streambuf* backup_out;
 			backup_out = cout.rdbuf();
@@ -970,8 +762,10 @@ public:
 			backup_in = cin.rdbuf();
 			stringstream ss_in;
 			cin.rdbuf(ss_in.rdbuf());
+			// MIMC USER INPUT -- QUITTING COMMAND -- 'Q'
 			string input = "q";
 			ss_in << input;
+			// CAPUTRE RETURN VALUE -- Q SHOULD END THE RUN LOOP
 			int response = cp->run();
 			Assert::AreNotEqual(response, 0);
 			// ASSIGN COUT BACK TO STDOUT
@@ -980,12 +774,14 @@ public:
 			cin.rdbuf(backup_in);
 		}
 		TEST_METHOD(runHelp) { // we would expect help to list all of the commands that have been added, in this case only the test command should be printed
-			HierarchicalFileSystem* hfs = new HierarchicalFileSystem();
-			HierarchicalFileFactory* hff = new HierarchicalFileFactory;
-			CommandTest* ct = new CommandTest(hfs, hff);
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
 			CommandPrompt* cp = new CommandPrompt;
-			cp->setFileSystem(hfs);
-			cp->setFileFactory(hff);
+			cp->setFileSystem(sfs);
+			cp->setFileFactory(sff);
+			// ADD COMMAND -- COMMAND TEST
+			CommandTest* ct = new CommandTest(sfs);
 			string commandname = "test";
 			Assert::AreEqual(cp->addCommand(commandname, ct), 0);
 			// REDIRECT COUT STREAM
@@ -998,15 +794,18 @@ public:
 			backup_in = cin.rdbuf();
 			stringstream ss_in;
 			cin.rdbuf(ss_in.rdbuf());
+			// MIMIC USER INPUT -- HELP & QUIT -- USE QUIT TO END RUN 
 			string input = "help\nq";
 			ss_in << input;
 			int response = cp->run();
 			Assert::AreNotEqual(response, 0);
+			// CAPTURE COUT DATA
 			string word;
 			std::vector<string> printedWords;
 			while (ss_out >> word) {
 				printedWords.push_back(word);
 			}
+			// EXPECTATION -- PROGRAM SHOULD PRINT ALL COMMANDS
 			std::vector<string>::iterator it1;
 			it1 = std::find(printedWords.begin(), printedWords.end(), commandname);
 			bool notEqual1 = it1 == printedWords.end();
@@ -1019,12 +818,14 @@ public:
 	};
 	TEST_CLASS(commandTest) {
 		TEST_METHOD(commandDisplayInfo) { // uses the CommandTest object to check that help + command name will successfully call the displayInfo() method for the correct command type
-			HierarchicalFileSystem* hfs = new HierarchicalFileSystem();
-			HierarchicalFileFactory* hff = new HierarchicalFileFactory;
-			CommandTest* ct = new CommandTest(hfs, hff);
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
 			CommandPrompt* cp = new CommandPrompt;
-			cp->setFileSystem(hfs);
-			cp->setFileFactory(hff);
+			cp->setFileSystem(sfs);
+			cp->setFileFactory(sff);
+			// ADD COMMAND
+			CommandTest* ct = new CommandTest(sfs);
 			string commandname = "test";
 			Assert::AreEqual(cp->addCommand(commandname, ct), 0);
 			// REDIRECT COUT STREAM
@@ -1037,6 +838,7 @@ public:
 			backup_in = cin.rdbuf();
 			stringstream ss_in;
 			cin.rdbuf(ss_in.rdbuf());
+			// MIMIC USER INPUT -- SPECIFIC HELP COMMAND
 			string input = "help test\nq\n";
 			ss_in << input;
 			int response = cp->run();
@@ -1046,8 +848,9 @@ public:
 			while (ss_out >> word) {
 				printedWords.push_back(word);
 			}
+			/// EXPECTATION -- DISPLAY INFO OF OUR COMMAND TEST SHOULD BE PRINTED TO COUT
 			std::vector<string>::iterator it1;
-			string expectedString = "aRandomStringz";
+			string expectedString = "aRandomStringz"; // MATCHES GIVEN COMMAND TEST FILE
 			it1 = std::find(printedWords.begin(), printedWords.end(), expectedString);
 			bool notEqual1 = it1 == printedWords.end();
 			Assert::IsFalse(notEqual1);
@@ -1056,13 +859,15 @@ public:
 			// ASSIGN CIN BACK TO STDIN
 			cin.rdbuf(backup_in);
 		}
-		TEST_METHOD(commandExecuteOneInput) { //  uses the CommandTest object to check passing variables to execute - expects no inputs to be passed as the second parameter
-			HierarchicalFileSystem* hfs = new HierarchicalFileSystem();
-			HierarchicalFileFactory* hff = new HierarchicalFileFactory;
-			CommandTest* ct = new CommandTest(hfs, hff);
+		TEST_METHOD(commandExecuteNoInfo) { //  uses the CommandTest object to check passing variables to execute - expects no inputs to be passed as the parameter in this case
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
 			CommandPrompt* cp = new CommandPrompt;
-			cp->setFileSystem(hfs);
-			cp->setFileFactory(hff);
+			cp->setFileSystem(sfs);
+			cp->setFileFactory(sff);
+			// ADD COMMAND
+			CommandTest* ct = new CommandTest(sfs);
 			string commandname = "test";
 			Assert::AreEqual(cp->addCommand(commandname, ct), 0);
 			// REDIRECT COUT STREAM
@@ -1075,8 +880,10 @@ public:
 			backup_in = cin.rdbuf();
 			stringstream ss_in;
 			cin.rdbuf(ss_in.rdbuf());
+			// MIMIC USER INPUT -- COMMAND TEST EXECUTE 
 			string input = "test\nq\n";
 			ss_in << input;
+			// CAPTURE RUN OUTPUT
 			int response = cp->run();
 			Assert::AreNotEqual(response, 0);
 			string word;
@@ -1084,8 +891,9 @@ public:
 			while (ss_out >> word) {
 				printedWords.push_back(word);
 			}
+			// EXPECTATION -- NOTHING SHOULD BE PASSED TO THE FUNCTION
 			std::vector<string>::iterator it1;
-			string expectedOutput = "root:";
+			string expectedOutput = "command-test-no-info";
 			it1 = std::find(printedWords.begin(), printedWords.end(), expectedOutput);
 			bool notEqual1 = it1 == printedWords.end();
 			Assert::IsFalse(notEqual1);
@@ -1094,13 +902,15 @@ public:
 			// ASSIGN CIN BACK TO STDIN
 			cin.rdbuf(backup_in);
 		}
-		TEST_METHOD(commandExecuteTwoInputs) { //  uses the CommandTest object to check passing variables to execute - expects one input, foo, to be passed as the second parameter
-			HierarchicalFileSystem* hfs = new HierarchicalFileSystem();
-			HierarchicalFileFactory* hff = new HierarchicalFileFactory;
-			CommandTest* ct = new CommandTest(hfs, hff);
+		TEST_METHOD(commandExecuteOneInput) { //  uses the CommandTest object to check passing variables to execute - expects one input, foo, to be passed to the function
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
 			CommandPrompt* cp = new CommandPrompt;
-			cp->setFileSystem(hfs);
-			cp->setFileFactory(hff);
+			cp->setFileSystem(sfs);
+			cp->setFileFactory(sff);
+			// ADD COMMAND
+			CommandTest* ct = new CommandTest(sfs);
 			string commandname = "test";
 			Assert::AreEqual(cp->addCommand(commandname, ct), 0);
 			// REDIRECT COUT STREAM
@@ -1113,6 +923,7 @@ public:
 			backup_in = cin.rdbuf();
 			stringstream ss_in;
 			cin.rdbuf(ss_in.rdbuf());
+			// MIMIC USER INPUT
 			string input = "test foo\nq\n";
 			ss_in << input;
 			int response = cp->run();
@@ -1122,8 +933,9 @@ public:
 			while (ss_out >> word) {
 				printedWords.push_back(word);
 			}
+			// EXPECTATION -- THE SECOND PARAMETER SHOULD BE PRINTED TO COUT
 			std::vector<string>::iterator it1;
-			string expectedOutput = "root:foo:";
+			string expectedOutput = "foo";
 			it1 = std::find(printedWords.begin(), printedWords.end(), expectedOutput);
 			bool notEqual1 = it1 == printedWords.end();
 			Assert::IsFalse(notEqual1);
@@ -1132,13 +944,15 @@ public:
 			// ASSIGN CIN BACK TO STDIN
 			cin.rdbuf(backup_in);
 		}
-		TEST_METHOD(commandExecuteMoreInputs) { // uses the CommandTest object to check passing variables to execute - expects two inputs to be passed as the second parameter
-			HierarchicalFileSystem* hfs = new HierarchicalFileSystem();
-			HierarchicalFileFactory* hff = new HierarchicalFileFactory;
-			CommandTest* ct = new CommandTest(hfs, hff);
+		TEST_METHOD(commandExecuteMoreInputs) { // uses the CommandTest object to check passing variables to execute - expects two inputs to be passed 
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
 			CommandPrompt* cp = new CommandPrompt;
-			cp->setFileSystem(hfs);
-			cp->setFileFactory(hff);
+			cp->setFileSystem(sfs);
+			cp->setFileFactory(sff);
+			// ADD COMMAND
+			CommandTest* ct = new CommandTest(sfs);
 			string commandname = "test";
 			Assert::AreEqual(cp->addCommand(commandname, ct), 0);
 			// REDIRECT COUT STREAM
@@ -1151,6 +965,7 @@ public:
 			backup_in = cin.rdbuf();
 			stringstream ss_in;
 			cin.rdbuf(ss_in.rdbuf());
+			// MIMIC USER INPUT
 			string input = "test foo moo\nq\n";
 			ss_in << input;
 			int response = cp->run();
@@ -1160,8 +975,9 @@ public:
 			while (ss_out >> word) {
 				printedWords.push_back(word);
 			}
+			// EXPECTATION -- ALL PARAMETERS SHOULD BE PRINTED TO COUT
 			std::vector<string>::iterator it1;
-			string expectedOutput = "root:foo:moo:";
+			string expectedOutput = "foo:moo";
 			it1 = std::find(printedWords.begin(), printedWords.end(), expectedOutput);
 			bool notEqual1 = it1 == printedWords.end();
 			Assert::IsFalse(notEqual1);
@@ -1171,25 +987,314 @@ public:
 			cin.rdbuf(backup_in);
 		}
 	};
+
 	TEST_CLASS(touchCommand) {
-		TEST_METHOD(execute) { // confirms that execute, when passed the current directory (default root) and the filename, will create and add a file to the correct location (for now the root directory) in the filesystem
-			HierarchicalFileSystem* hfs = new HierarchicalFileSystem();
-			HierarchicalFileFactory* hff = new HierarchicalFileFactory;
-			TouchCommand* ct = new TouchCommand(hfs, hff);
-			CommandPrompt* cp = new CommandPrompt;
-			cp->setFileSystem(hfs);
-			cp->setFileFactory(hff);
-			string commandname = "touch";
-			Assert::AreEqual(cp->addCommand(commandname, ct), 0);
-			string currentDirectory = "root";
+		TEST_METHOD(execute) { // confirms that execute, when passed a valid filename, will create and add a file in the filesystem
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			// CREATE COMMAND
+			TouchCommand* tc = new TouchCommand(sfs, sff);
+			// CALL EXECUTE ON TOUCH COMMAND
 			string filename = "file.txt";
-			string fullpath = currentDirectory + "/" + filename;
-			ct->execute(currentDirectory, filename);
-			AbstractFile* file = hfs->openFile(fullpath);
+			Assert::AreEqual(tc->execute(filename), 0);
+			// EXPECTATION -- FILE EXISTS IN THE FILE SYSTEM
+			AbstractFile* file = sfs->openFile(filename);
 			bool isNull = file == nullptr;
 			Assert::IsFalse(isNull);
 			Assert::AreEqual(filename, file->getName());
 		}
+		TEST_METHOD(executePasswordProxy) { // confirms that execute, when passed a valid filename with a password, will create and add a password proxy file to the filesystem
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			// CREATE COMMAND
+			TouchCommand* tc = new TouchCommand(sfs, sff);
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// REDIRECT CIN STREAM
+			streambuf* backup_in;
+			backup_in = cin.rdbuf();
+			stringstream ss_in;
+			cin.rdbuf(ss_in.rdbuf());
+			// MIMIC USER INPUT
+			string password = "Jdi320dD";
+			string wrongpassword = "DKR32sdfRR";
+			string input = password + "\n" + password + "\n" + wrongpassword + "\n" + password;
+			ss_in << input;
+			// CALL EXECUTE ON TOUCH COMMAND
+			string filename = "file.txt";
+			Assert::AreEqual(tc->execute(filename + " -p"), 0);
+			// EXPECTATION -- FILE EXISTS IN THE FILE SYSTEM
+			AbstractFile* file = sfs->openFile(filename);
+			bool isNull = file == nullptr;
+			Assert::IsFalse(isNull);
+			Assert::AreEqual(filename, file->getName());
+			// EXPECTATION -- PASSWORD REQUIRED FOR WRITE -- GIVEN VALID PASSWORD
+			vector<char> v = { 'h', 'i' };
+			Assert::AreEqual(file->write(v), 0);
+			Assert::AreEqual(file->getSize(), static_cast<unsigned int>(v.size()));
+			// EXPECTATION -- PASSWORD REQUIRED FOR READ -- GIVEN INVALID PASSWORD
+			vector<char> contents1 = file->read();
+			Assert::AreEqual(contents1.size(), static_cast<size_t>(0));
+			// EXPECTATION -- PASSWORD REQUIRED FOR READ -- GIVEN VALID PASSWORD
+			vector<char> contents2 = file->read();
+			Assert::AreEqual(contents2.size(), v.size());
+			// ASSIGN COUT BACK TO STDOUT
+			cout.rdbuf(backup_out);
+			// ASSIGN CIN BACK TO STDIN
+			cin.rdbuf(backup_in);
+		}
+		TEST_METHOD(executeInvalidExtension) { // confirms that execute, when passed a valid filename, will create and add a file in the filesystem
+		// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			// CREATE COMMAND
+			TouchCommand* tc = new TouchCommand(sfs, sff);
+			// CALL EXECUTE ON TOUCH COMMAND
+			string filename = "file.foo";
+			Assert::AreNotEqual(tc->execute(filename), 0);
+			// EXPECTATION -- FILE DOES NOT EXISTS IN THE FILE SYSTEM
+			AbstractFile* file = sfs->openFile(filename);
+			bool isNull = file == nullptr;
+			Assert::IsTrue(isNull);
+		}
+		TEST_METHOD(executeFileAlreadyExists) { // confirms that execute, when passed a valid filename, will create and add a file in the filesystem
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			// CREATE COMMAND
+			TouchCommand* tc = new TouchCommand(sfs, sff);
+			// CALL EXECUTE ON TOUCH COMMAND
+			string filename = "file.txt";
+			Assert::AreEqual(tc->execute(filename), 0);
+			Assert::AreNotEqual(tc->execute(filename), 0);
+			// EXPECTATION -- FILE DOES EXISTS IN THE FILE SYSTEM - FIRST EXECUTION
+			AbstractFile* file = sfs->openFile(filename);
+			bool isNull = file == nullptr;
+			Assert::IsFalse(isNull);
+		}
 	};
-}
 
+
+	TEST_CLASS(lSCommand) {
+		TEST_METHOD(getAllFiles) { // confirms that execute, when passed a valid filename, will remove the given file from the filesystem -- removing the file again should fail, adding the file again should pass
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			// ADD FILES
+			string filename1 = "file.txt";
+			string filename2 = "file.img";
+			Assert::AreEqual(sfs->addFile(filename1, sff->createFile(filename1)), 0);
+			Assert::AreEqual(sfs->addFile(filename2, sff->createFile(filename2)), 0);
+			// CHECK FILES IN SYSTEM USING GETFILENAMES() FUCNTION
+			set<string> files = sfs->getFileNames();
+			Assert::AreEqual(files.size(), static_cast<size_t>(2));
+			// EXPECTATION -- TEXT FILE EXISTS IN THE FILE SYSTEM
+			std::set<std::string>::iterator it1 = files.find(filename1);
+			bool found1 = it1 == files.end();
+			Assert::IsFalse(found1);
+			// EXPECTATION -- IMAGE FILE EXISTS IN THE FILE SYSTEM
+			std::set<std::string>::iterator it2 = files.find(filename2);
+			bool found2 = it2 == files.end();
+			Assert::IsFalse(found2);
+		}
+		TEST_METHOD(nooption) {
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			// ADD FILES
+			string filename1 = "file.txt";
+			string filename2 = "file.img";
+			string filename3 = "adifferentfile.txt";
+			Assert::AreEqual(sfs->addFile(filename1, sff->createFile(filename1)), 0);
+			Assert::AreEqual(sfs->addFile(filename2, sff->createFile(filename2)), 0);
+			Assert::AreEqual(sfs->addFile(filename3, sff->createFile(filename3)), 0);
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// execute ls
+			AbstractCommand* ls = new LSCommand(sfs);
+			Assert::AreEqual(ls->execute(""), 0);
+			// check output
+			string firstLine;
+			string secondLine;
+			// ensure 2 lines of output
+			bool extractSuccessful = false;
+			if (getline(ss_out, firstLine)) {
+				extractSuccessful = true;
+			}
+			Assert::IsTrue(extractSuccessful);
+			extractSuccessful = false;
+			if (getline(ss_out, secondLine)) {
+				extractSuccessful = true;
+			}
+			Assert::IsTrue(extractSuccessful);
+			string firstFile;
+			string secondFile;
+			istringstream iss(firstLine);
+			iss >> firstFile;
+			iss >> secondFile;
+			string thirdFile;
+			istringstream iss2(secondLine);
+			iss2 >> thirdFile;
+			string expectedFirst = "adifferentfile.txt";
+			string expectedSecond = "file.img";
+			string expectedThird = "file.txt";
+			Assert::AreEqual(firstFile, expectedFirst);
+			Assert::AreEqual(secondFile, expectedSecond);
+			Assert::AreEqual(thirdFile, expectedThird);
+		}
+		TEST_METHOD(metadata) {
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			// ADD FILES
+			string filename1 = "file.txt";
+			string filename2 = "file.img";
+			string filename3 = "adifferentfile.txt";
+			Assert::AreEqual(sfs->addFile(filename1, sff->createFile(filename1)), 0);
+			Assert::AreEqual(sfs->addFile(filename2, sff->createFile(filename2)), 0);
+			Assert::AreEqual(sfs->addFile(filename3, sff->createFile(filename3)), 0);
+			AbstractFile* f1 = sfs->openFile(filename1);
+			AbstractFile* f2 = sfs->openFile(filename2);
+			f1->write({ 'h','i' });
+			int f1Size = f1->getSize();
+			Assert::AreEqual(f1Size, 2);
+			f2->write({ 'X',' ', ' ', 'X', '2' });
+			int f2Size = f2->getSize();
+			Assert::AreEqual(f2Size, 4);
+			int f3Size = 0;
+			sfs->closeFile(f1);
+			sfs->closeFile(f2);
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// execute ls
+			AbstractCommand* ls = new LSCommand(sfs);
+			Assert::AreEqual(ls->execute("-m"), 0);
+			string line1;
+			string line2;
+			string line3;
+			getline(ss_out, line1);
+			getline(ss_out, line2);
+			getline(ss_out, line3);
+			istringstream iss(line1);
+			istringstream iss2(line2);
+			istringstream iss3(line3);
+			string f1Name;
+			string f2Name;
+			string f3Name;
+			string f1Type;
+			string f2Type;
+			string f3Type;
+			int sizeF1;
+			int sizeF2;
+			int sizeF3;
+			iss >> f1Name >> f1Type >> sizeF1;
+			iss2 >> f2Name >> f2Type >> sizeF2;
+			iss3 >> f3Name >> f3Type >> sizeF3;
+			Assert::AreEqual(f1Name, filename3);
+			Assert::AreEqual(f2Name, filename2);
+			Assert::AreEqual(f3Name, filename1);
+			string txtType = "text";
+			string imgType = "image";
+			Assert::AreEqual(f1Type, txtType);
+			Assert::AreEqual(f2Type, imgType);
+			Assert::AreEqual(f3Type, txtType);
+			Assert::AreEqual(sizeF1, f3Size);
+			Assert::AreEqual(sizeF2, f2Size);
+			Assert::AreEqual(sizeF3, f1Size);
+			// did the files get closed?
+			f1 = sfs->openFile(filename1);
+			f2 = sfs->openFile(filename2);
+			AbstractFile* f3 = sfs->openFile(filename3);
+			bool allOpen = false;
+			if (f1 != nullptr && f2 != nullptr && f3 != nullptr) {
+				allOpen = true;
+			}
+			Assert::IsTrue(allOpen);
+		}
+	};
+
+	TEST_CLASS(removeCommand) {
+		TEST_METHOD(execute) { // confirms that execute, when passed a valid filename, will remove the given file from the filesystem -- removing the file again should fail, adding the file again should pass
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			// ADD FILES
+			string filename1 = "file.txt";
+			string filename2 = "file.img";
+			Assert::AreEqual(sfs->addFile(filename1, sff->createFile(filename1)), 0);
+			Assert::AreEqual(sfs->addFile(filename2, sff->createFile(filename2)), 0);
+			// CREATE COMMAND
+			RemoveCommand* rc = new RemoveCommand(sfs);
+			// CALL EXECUTE ON REMOVE COMMAND
+			Assert::AreEqual(rc->execute(filename2), 0);
+			// EXPECTATION -- TEXT FILE EXISTS IN THE FILE SYSTEM
+			AbstractFile* file1 = sfs->openFile(filename1);
+			bool isNull1 = file1 == nullptr;
+			Assert::IsFalse(isNull1);
+			Assert::AreEqual(filename1, file1->getName());
+			// EXPECTATION -- IMAGE FILE REMOVED IN THE FILE SYSTEM
+			AbstractFile* file2 = sfs->openFile(filename2);
+			bool isNull2 = file2 == nullptr;
+			Assert::IsTrue(isNull2);
+			// CLOSE TEXT FILE
+			Assert::AreEqual(sfs->closeFile(file1), 0);
+			// CHECK FILES IN SYSTEM USING GETFILENAMES() FUCNTION
+			set<string> files = sfs->getFileNames();
+			Assert::AreEqual(files.size(), static_cast<size_t>(1));
+			// EXPECTATION -- TEXT FILE EXISTS IN THE FILE SYSTEM
+			std::set<std::string>::iterator it1 = files.find(filename1);
+			bool found1 = it1 == files.end();
+			Assert::IsFalse(found1);
+			// EXPECTATION -- IMAGE FILE REMOVED IN THE FILE SYSTEM
+			std::set<std::string>::iterator it2 = files.find(filename2);
+			bool found2 = it2 == files.end();
+			Assert::IsTrue(found2);
+			// RE-ADD FILE
+			Assert::AreEqual(sfs->addFile(filename2, sff->createFile(filename2)), 0);
+			set<string> files2 = sfs->getFileNames();
+			Assert::AreEqual(files2.size(), static_cast<size_t>(2));
+			// EXPECTATION -- IMAGE FILE EXISTS IN THE FILE SYSTEM - OPEN FILE CHEC AND GETFILENAMES CHECK
+			std::set<std::string>::iterator it3 = files2.find(filename2);
+			bool found3 = it3 == files2.end();
+			Assert::IsFalse(found3);
+			AbstractFile* file3 = sfs->openFile(filename2);
+			bool isNull3 = file3 == nullptr;
+			Assert::IsFalse(isNull3);
+		}
+		TEST_METHOD(executeFileOpen) { // confirms that execute, when passed a valid filename for a file that is open, execute will return an error and filesystem is untouched, so we expect to be able to close it
+			// SET UP FILE SYSTEM
+			AbstractFileSystem* sfs = new SimpleFileSystem();
+			AbstractFileFactory* sff = new SimpleFileFactory();
+			// REDIRECT COUT STREAM
+			streambuf* backup_out;
+			backup_out = cout.rdbuf();
+			stringstream ss_out;
+			cout.rdbuf(ss_out.rdbuf());
+			// ADD FILE
+			string filename1 = "file.txt";
+			Assert::AreEqual(sfs->addFile(filename1, sff->createFile(filename1)), 0);
+			// OPEN FILE
+			AbstractFile* file1 = sfs->openFile(filename1);
+			bool isNull = file1 == nullptr;
+			Assert::IsFalse(isNull);
+			Assert::AreEqual(filename1, file1->getName());
+			// CREATE COMMAND
+			RemoveCommand* rc = new RemoveCommand(sfs);
+			// CALL EXECUTE ON REMOVE COMMAND
+			Assert::AreNotEqual(rc->execute(filename1), 0);
+			// EXPECTATION -- TEXT FILE EXISTS IN THE FILE SYSTEM -- SO WE CAN CLOSE IT
+			// CLOSE FILE
+			Assert::AreEqual(sfs->closeFile(file1), 0);
+		}
+	};
+
+}
