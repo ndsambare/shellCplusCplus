@@ -11,7 +11,7 @@ RemoveCommand::RemoveCommand(AbstractFileSystem* afsInput) {
 
 int RemoveCommand::execute(string command) {
 	
-	if (afs->deleteFile(command)) {
+	if (afs->deleteFile(command) == Succ) {
 		return Succ;
 	}
 	else {
