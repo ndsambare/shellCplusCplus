@@ -1,5 +1,7 @@
 #include "TouchCommand.h"
 #include "SimpleFileSystem.h"
+#include "PasswordProxy.h"
+#include <sstream>
 
 TouchCommand::TouchCommand(AbstractFileSystem* afsInput, AbstractFileFactory* affInput) {
 	this->afs = afsInput;
@@ -7,16 +9,30 @@ TouchCommand::TouchCommand(AbstractFileSystem* afsInput, AbstractFileFactory* af
 }
 
 int TouchCommand::execute(string command) {
-	AbstractFile* file = aff->createFile(command);
+	istringstream iss(command);
+	string fileName, passCheck;
+	iss >> fileName >> passCheck;
+	AbstractFile* file = aff->createFile(fileName);
 	if (file == nullptr) {
 		return nullPointer;
 	}
-	int result = afs->addFile(command, file);
+	int result;
+	//password
+	if (passCheck == "-p") {
+		cout << "What is the password?" << endl;
+		string pass;
+		cin >> pass;
+		PasswordProxy* pp = new PasswordProxy(file, pass);
+		result = afs->addFile(fileName, pp);
+	}
+	else {
+		result = afs->addFile(fileName, file);
+	}
 	if (result == fileExists) {
 		return fileExists;
 	}
 	else if (result != Succ) {
-		afs->deleteFile(command);
+		afs->deleteFile(fileName);
 	}
 	return result;
 }
