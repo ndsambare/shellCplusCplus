@@ -1,11 +1,44 @@
 // Studio21.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include <iostream>
+#include <sstream>
+#include "../../SharedCode/TextFile.h"
+#include "../../SharedCode/ImageFile.h"
+#include "../../SharedCode/SimpleFileFactory.h"
+#include "../../SharedCode/SimpleFileSystem.h"
+#include "../../SharedCode/BasicDisplayVisitor.h"
+#include "../../SharedCode/MetadataDisplayVisitor.h"
+#include "../../SharedCode/PasswordProxy.h"
+#include "../../SharedCode/TouchCommand.h"
+#include "../../SharedCode/CommandPrompt.h"
+#include "../../SharedCode/CommandTest.h"
+#include "..//..//SharedCode/LSCommand.h"
+#include "..//..//SharedCode/RemoveCommand.h"
+#include "..//..//SharedCode/CatCommand.h"
+#include "..//..//SharedCode/DSCommand.h"
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	AbstractFileSystem* sfs = new SimpleFileSystem();
+	AbstractFileFactory* sff = new SimpleFileFactory();
+	// ADD FILES
+	string filename = "file.txt";
+	AbstractFile* file = sff->createFile(filename);
+	vector<char> v = { 'f','o','o' };
+	sfs->addFile(filename, file);
+	sfs->openFile("file.txt");
+	file->write(v);
+	sfs->closeFile(file);
+	AbstractCommand* cc = new CatCommand(sfs);
+	AbstractCommand* ls = new LSCommand(sfs);
+	AbstractCommand* ds = new DisplayCommand(sfs);
+	CommandPrompt* cp = new CommandPrompt();
+	cp->setFileFactory(sff);
+	cp->setFileSystem(sfs);
+	cp->addCommand("cat", cc);
+	cp->addCommand("ls", ls);
+	cp->addCommand("ds", ds);
+	cp->run();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

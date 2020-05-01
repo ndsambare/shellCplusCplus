@@ -148,9 +148,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\SharedCode\BasicDisplayVisitor.cpp" />
+    <ClCompile Include="..\..\SharedCode\CatCommand.cpp" />
     <ClCompile Include="..\..\SharedCode\CommandPrompt.cpp" />
     <ClCompile Include="..\..\SharedCode\CommandTest.cpp" />
     <ClCompile Include="..\..\SharedCode\DirectoryFile.cpp" />
+    <ClCompile Include="..\..\SharedCode\DSCommand.cpp" />
     <ClCompile Include="..\..\SharedCode\HierarchicalFileFactory.cpp" />
     <ClCompile Include="..\..\SharedCode\HierarchicalFileSystem.cpp" />
     <ClCompile Include="..\..\SharedCode\ImageFile.cpp" />
@@ -171,9 +173,11 @@
     <ClInclude Include="..\..\SharedCode\AbstractFileSystem.h" />
     <ClInclude Include="..\..\SharedCode\AbstractFileVisitor.h" />
     <ClInclude Include="..\..\SharedCode\BasicDisplayVisitor.h" />
+    <ClInclude Include="..\..\SharedCode\CatCommand.h" />
     <ClInclude Include="..\..\SharedCode\CommandPrompt.h" />
     <ClInclude Include="..\..\SharedCode\CommandTest.h" />
     <ClInclude Include="..\..\SharedCode\DirectoryFile.h" />
+    <ClInclude Include="..\..\SharedCode\DSCommand.h" />
     <ClInclude Include="..\..\SharedCode\HierarchicalFileFactory.h" />
     <ClInclude Include="..\..\SharedCode\HierarchicalFileSystem.h" />
     <ClInclude Include="..\..\SharedCode\ImageFile.h" />

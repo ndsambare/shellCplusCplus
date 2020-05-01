@@ -14,6 +14,8 @@
 #include "../../SharedCode/CommandTest.cpp"
 #include "..//..//SharedCode/LSCommand.cpp"
 #include "..//..//SharedCode/RemoveCommand.cpp"
+#include "..//..//SharedCode/CatCommand.cpp"
+#include "..//..//SharedCode/DSCommand.cpp"
 #undef protected
 
 
@@ -1463,7 +1465,7 @@ public:
 		}
 	};
 
-	/*
+	
 	TEST_CLASS(catCommand) {
 		TEST_METHOD(executeTextFileNoAppendSaving) { // test executing cat with no append option and saving input to a text file
 			// SET UP FILE SYSTEM
@@ -1834,6 +1836,7 @@ public:
 			cin.rdbuf(backup_in);
 		}
 	};
+	/*
 	TEST_CLASS(renameCommand) {
 		TEST_METHOD(renameParsingStrategy) { // checks parse function of RenameParsingStrategy correctly converts input string into a vector of strings representing instructions for copy and remove commands
 			// REDIRECT COUT STREAM -- PROTECT AGAINST ERRORS
@@ -2036,6 +2039,7 @@ public:
 			Assert::IsFalse(isNotPasswordProxy);
 		}
 	};
+	*/
 	TEST_CLASS(DSCommand) {
 		TEST_METHOD(displaytext) {
 			AbstractFileSystem* sfs = new SimpleFileSystem();
@@ -2166,6 +2170,7 @@ public:
 			Assert::AreNotEqual(ds->execute("file.txt"), 0);
 		}
 	};
+	/*
 	TEST_CLASS(Copy) {
 		TEST_METHOD(validcopy) {
 			AbstractFileSystem* sfs = new SimpleFileSystem();

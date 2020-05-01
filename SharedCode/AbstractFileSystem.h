@@ -8,6 +8,10 @@
 #include <set>
 using namespace std;
 
+enum {
+	Succ = 0, fileExists = 1, nullPointer = 2, notOpen = 3, fileDoesNotExist = 4, openIsFile = 5,
+};
+
 class AbstractFileSystem {
 public:
 	virtual int addFile(string nameOfFile, AbstractFile* pointerFile) = 0;
