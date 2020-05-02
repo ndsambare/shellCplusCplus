@@ -22,20 +22,28 @@ int TouchCommand::execute(string command) {
 		cout << "What is the password?" << endl;
 		string pass;
 		cin >> pass;
-		PasswordProxy* pp = new PasswordProxy(file, pass);
+		cout << endl;
+		AbstractFile* pp = new PasswordProxy(file, pass);
 		result = afs->addFile(fileName, pp);
+		if (result == fileExists) {
+			return fileExists;
+		}
+		else if (result != Succ) {
+			afs->deleteFile(fileName);
+		}
+		return result;
 	}
 	else {
 		result = afs->addFile(fileName, file);
+		if (result == fileExists) {
+			return fileExists;
+		}
+		else if (result != Succ) {
+			afs->deleteFile(fileName);
+		}
+		return result;
 	}
-	if (result == fileExists) {
-		return fileExists;
-	}
-	else if (result != Succ) {
-		afs->deleteFile(fileName);
-	}
-	return result;
 }
 void TouchCommand::displayInfo() {
-	cout << "Touch creates a file, touch can be invoked ith the command : touch <filename>" << endl;
+	cout << "Touch creates a file, touch can be invoked with the command : touch <filename>" << endl;
 }

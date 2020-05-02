@@ -6,12 +6,12 @@
 
 using namespace std;
 
-class DisplayCommand : public AbstractCommand {
+class CopyCommand : public AbstractCommand {
 private:
 	AbstractFileSystem* afs;
 public:
-	DisplayCommand(AbstractFileSystem*);
-	~DisplayCommand() = default;
+	CopyCommand(AbstractFileSystem*);
+	~CopyCommand() = default;
 	int execute(string command);
 	void displayInfo();
 };

@@ -19,4 +19,5 @@ public:
 	virtual unsigned int getSize() = 0;
 	virtual ~AbstractFile() = default;
 	virtual void accept(AbstractFileVisitor* visitor) = 0;
+	virtual AbstractFile* clone(string) = 0;
 };

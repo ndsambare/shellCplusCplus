@@ -25,6 +25,7 @@ public:
 			visitor->visit_ImageFile(this);
 		}
 	}
+	AbstractFile* clone(string);
 };
 
 

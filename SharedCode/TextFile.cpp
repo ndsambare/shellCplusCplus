@@ -42,3 +42,9 @@ vector<char> TextFile::read() {
 	}
 	return vec;
 }
+
+AbstractFile* TextFile::clone(string newFileName) {
+	TextFile* newFile = new TextFile(*this);
+	newFile->fileName = newFileName;
+	return newFile;
+}

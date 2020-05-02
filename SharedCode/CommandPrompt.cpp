@@ -29,7 +29,7 @@ int CommandPrompt::run() {
 		if (command == "q") {
 			return quit;
 		}
-		if (command == "help") {
+		else if (command == "help") {
 			listCommands();
 		}
 		else {
@@ -92,5 +92,6 @@ string CommandPrompt::prompt() {
 	cout << endl;
 	cout << "$  ";
 	getline(cin, command);
+	cout << "test" << endl;
 	return command;
 }

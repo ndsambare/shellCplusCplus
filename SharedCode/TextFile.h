@@ -25,7 +25,7 @@ public:
 			visitor->visit_TextFile(this);
 		}
 	}
-
+	AbstractFile* clone(string);
 
 
 };

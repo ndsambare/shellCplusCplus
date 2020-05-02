@@ -151,6 +151,7 @@
     <ClCompile Include="..\..\SharedCode\CatCommand.cpp" />
     <ClCompile Include="..\..\SharedCode\CommandPrompt.cpp" />
     <ClCompile Include="..\..\SharedCode\CommandTest.cpp" />
+    <ClCompile Include="..\..\SharedCode\CopyCommand.cpp" />
     <ClCompile Include="..\..\SharedCode\DirectoryFile.cpp" />
     <ClCompile Include="..\..\SharedCode\DSCommand.cpp" />
     <ClCompile Include="..\..\SharedCode\HierarchicalFileFactory.cpp" />
@@ -176,6 +177,7 @@
     <ClInclude Include="..\..\SharedCode\CatCommand.h" />
     <ClInclude Include="..\..\SharedCode\CommandPrompt.h" />
     <ClInclude Include="..\..\SharedCode\CommandTest.h" />
+    <ClInclude Include="..\..\SharedCode\CopyCommand.h" />
     <ClInclude Include="..\..\SharedCode\DirectoryFile.h" />
     <ClInclude Include="..\..\SharedCode\DSCommand.h" />
     <ClInclude Include="..\..\SharedCode\HierarchicalFileFactory.h" />

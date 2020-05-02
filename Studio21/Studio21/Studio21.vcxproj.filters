@@ -69,6 +69,9 @@
     <ClCompile Include="..\..\SharedCode\DSCommand.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\SharedCode\CopyCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\SharedCode\AbstractCommand.h">
@@ -135,6 +138,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\SharedCode\DSCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\SharedCode\CopyCommand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

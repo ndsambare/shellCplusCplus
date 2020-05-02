@@ -53,3 +53,9 @@ void PasswordProxy::accept(AbstractFileVisitor* visitor) {
 		filePointer->accept(visitor);
 	}
 }
+
+AbstractFile* PasswordProxy::clone(string newFileName) {
+	AbstractFile* test = filePointer->clone(newFileName);
+	PasswordProxy* newProxy = new PasswordProxy(test,password);
+	return newProxy;
+}

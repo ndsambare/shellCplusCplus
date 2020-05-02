@@ -78,3 +78,9 @@ int ImageFile::getImageSize() {
 	int sizeOfChar = this->imageSize - '0';
 	return sizeOfChar;
 }
+
+AbstractFile* ImageFile::clone(string newFileName) {
+	ImageFile* newFile = new ImageFile(*this);
+	newFile->fileName = newFileName;
+	return newFile;
+}

@@ -16,6 +16,7 @@
 #include "..//..//SharedCode/RemoveCommand.cpp"
 #include "..//..//SharedCode/CatCommand.cpp"
 #include "..//..//SharedCode/DSCommand.cpp"
+#include "..//..//SharedCode/CopyCommand.cpp"
 #undef protected
 
 
@@ -2170,7 +2171,7 @@ public:
 			Assert::AreNotEqual(ds->execute("file.txt"), 0);
 		}
 	};
-	/*
+	
 	TEST_CLASS(Copy) {
 		TEST_METHOD(validcopy) {
 			AbstractFileSystem* sfs = new SimpleFileSystem();
@@ -2280,5 +2281,4 @@ public:
 			}
 		}
 	};
-	*/
 }
