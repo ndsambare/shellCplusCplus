@@ -9,7 +9,7 @@
 
 using namespace std;
 
-class RemoveCommand  {
+class RemoveCommand : public AbstractCommand {
 private:
 	AbstractFileSystem* afs;
 

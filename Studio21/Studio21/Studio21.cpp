@@ -17,6 +17,8 @@
 #include "..//..//SharedCode/CatCommand.h"
 #include "..//..//SharedCode/DSCommand.h"
 #include "..//..//SharedCode/CopyCommand.h"
+#include "../../SharedCode/MacroCommand.h"
+#include "../../SharedCode/RenameParsingStrategy.h"
 
 int main()
 {
@@ -36,6 +38,13 @@ int main()
 	AbstractCommand* cp = new CopyCommand(sfs);
 	AbstractCommand* touch = new TouchCommand(sfs, sff);
 	CommandPrompt* cPrompt = new CommandPrompt();
+	MacroCommand* mc = new MacroCommand(sfs);
+	RenameParsingStrategy* rps = new RenameParsingStrategy;
+	AbstractCommand* cpc = new CopyCommand(sfs);
+	AbstractCommand* rmc = new RemoveCommand(sfs);
+	mc->setParseStrategy(rps);
+	mc->addCommand(cpc);
+	mc->addCommand(rmc);
 	cPrompt->setFileFactory(sff);
 	cPrompt->setFileSystem(sfs);
 	cPrompt->addCommand("cat", cc);
@@ -43,6 +52,7 @@ int main()
 	cPrompt->addCommand("ds", ds);
 	cPrompt->addCommand("cp", cp);
 	cPrompt->addCommand("touch", touch);
+	cPrompt->addCommand("rn", mc);
 	cPrompt->run();
 }
 

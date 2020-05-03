@@ -158,9 +158,11 @@
     <ClCompile Include="..\..\SharedCode\HierarchicalFileSystem.cpp" />
     <ClCompile Include="..\..\SharedCode\ImageFile.cpp" />
     <ClCompile Include="..\..\SharedCode\LSCommand.cpp" />
+    <ClCompile Include="..\..\SharedCode\MacroCommand.cpp" />
     <ClCompile Include="..\..\SharedCode\MetadataDisplayVisitor.cpp" />
     <ClCompile Include="..\..\SharedCode\PasswordProxy.cpp" />
     <ClCompile Include="..\..\SharedCode\RemoveCommand.cpp" />
+    <ClCompile Include="..\..\SharedCode\RenameParsingStrategy.cpp" />
     <ClCompile Include="..\..\SharedCode\SimpleFileFactory.cpp" />
     <ClCompile Include="..\..\SharedCode\SimpleFileSystem.cpp" />
     <ClCompile Include="..\..\SharedCode\TextFile.cpp" />
@@ -173,6 +175,7 @@
     <ClInclude Include="..\..\SharedCode\AbstractFileFactory.h" />
     <ClInclude Include="..\..\SharedCode\AbstractFileSystem.h" />
     <ClInclude Include="..\..\SharedCode\AbstractFileVisitor.h" />
+    <ClInclude Include="..\..\SharedCode\AbstractParsingStrategy.h" />
     <ClInclude Include="..\..\SharedCode\BasicDisplayVisitor.h" />
     <ClInclude Include="..\..\SharedCode\CatCommand.h" />
     <ClInclude Include="..\..\SharedCode\CommandPrompt.h" />
@@ -187,10 +190,14 @@
     <ClInclude Include="..\..\SharedCode\MetadataDisplayVisitor.h" />
     <ClInclude Include="..\..\SharedCode\PasswordProxy.h" />
     <ClInclude Include="..\..\SharedCode\RemoveCommand.h" />
+    <ClInclude Include="..\..\SharedCode\RenameParsingStrategy.h" />
     <ClInclude Include="..\..\SharedCode\SimpleFileFactory.h" />
     <ClInclude Include="..\..\SharedCode\SimpleFileSystem.h" />
     <ClInclude Include="..\..\SharedCode\TextFile.h" />
     <ClInclude Include="..\..\SharedCode\TouchCommand.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\SharedCode\ReadMe.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

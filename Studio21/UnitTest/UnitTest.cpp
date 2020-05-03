@@ -17,6 +17,8 @@
 #include "..//..//SharedCode/CatCommand.cpp"
 #include "..//..//SharedCode/DSCommand.cpp"
 #include "..//..//SharedCode/CopyCommand.cpp"
+#include "..//..//SharedCode/MacroCommand.cpp"
+#include "..//..//SharedCode/RenameParsingStrategy.cpp"
 #undef protected
 
 
@@ -87,7 +89,7 @@ namespace UnitTest
 			std::vector<char> v = { 'h', 'i' };
 			Assert::AreEqual(t.write(v), 0);
 			std::vector<char> contents = t.read();
-			Assert::AreEqual(t.getSize(), static_cast<unsigned int>(v.size()));
+			Assert::AreEqual((size_t)t.getSize(), v.size());
 			Assert::AreEqual(contents.size(), v.size());
 			for (size_t i = 0; i < contents.size(); ++i) {
 				Assert::AreEqual(v[i], contents[i]);
@@ -743,9 +745,9 @@ public:
 			Assert::AreEqual(realfile->getSize(), static_cast<unsigned int>(v.size()));
 			// EXPECTATIONS FOR SECOND FUNCTION -- INVALID PASSWORD
 			std::vector<char> contentsPP = pp->read();
-			Assert::AreEqual(static_cast<int>(contentsPP.size()),0);
+			Assert::AreEqual(contentsPP.size(), static_cast<size_t>(0));
 			std::vector<char> contentsRF = realfile->read();
-			Assert::AreEqual(contentsRF.size(), v.size());
+			Assert::AreEqual(contentsRF.size(), static_cast<size_t>(v.size()));
 			// ASSIGN COUT BACK TO STDOUT
 			cout.rdbuf(backup_out);
 			// ASSIGN CIN BACK TO STDIN
@@ -1465,8 +1467,6 @@ public:
 			Assert::IsTrue(allOpen);
 		}
 	};
-
-	
 	TEST_CLASS(catCommand) {
 		TEST_METHOD(executeTextFileNoAppendSaving) { // test executing cat with no append option and saving input to a text file
 			// SET UP FILE SYSTEM
@@ -1837,7 +1837,6 @@ public:
 			cin.rdbuf(backup_in);
 		}
 	};
-	/*
 	TEST_CLASS(renameCommand) {
 		TEST_METHOD(renameParsingStrategy) { // checks parse function of RenameParsingStrategy correctly converts input string into a vector of strings representing instructions for copy and remove commands
 			// REDIRECT COUT STREAM -- PROTECT AGAINST ERRORS
@@ -2040,7 +2039,6 @@ public:
 			Assert::IsFalse(isNotPasswordProxy);
 		}
 	};
-	*/
 	TEST_CLASS(DSCommand) {
 		TEST_METHOD(displaytext) {
 			AbstractFileSystem* sfs = new SimpleFileSystem();
@@ -2171,7 +2169,6 @@ public:
 			Assert::AreNotEqual(ds->execute("file.txt"), 0);
 		}
 	};
-	
 	TEST_CLASS(Copy) {
 		TEST_METHOD(validcopy) {
 			AbstractFileSystem* sfs = new SimpleFileSystem();
