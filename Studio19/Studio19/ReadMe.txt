@@ -1,5 +1,5 @@
 studio 19 answers here
-
+1. Namit Sambare and William Loh
 2. Below is the code for our main function:
 	AbstractFileFactory* aff = new SimpleFileFactory;
 	AbstractFile* test = aff->createFile("test.txt");

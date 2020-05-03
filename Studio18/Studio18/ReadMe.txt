@@ -1,5 +1,5 @@
 studio 18 answers here
-
+1. Namit Sambare and William Loh
 2. The factory method allows the derived classes of a base class to alter the type it creates in a method - i.e. polymorphic creation. The type of file system described in the question seems easy to implement if we follow the factory method. The base class AbstractFileSystem will create a general template for the createFile method, while the derived classes will specify the type for the concrete type needed.
 3. Disadvantages of abstract factory is if you don't need subclasses, then you shouldn't use it. You would want to create a new concrete file class if there is a new type you are dealing with. To accommodate different file types, you would have to edit the createFile code to properly create that file type. Yes, the same factory can be used for both. Yes, it can be used for both (less sure).
 4. This is the test we ran:
